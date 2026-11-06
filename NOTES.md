@@ -83,6 +83,11 @@ without its signature.
   per crash with a minidump and `CrashContext.runtime-xml`.
 - `Binaries\Win64\crash_*.dmp` - UE4SS's own dumps.
 
+## Credits
+
+Created by DeepSeek at the behest of a human (@murkzuk), in one session.
+The human specified the goal and ran every in-game test.
+
 ## House rules
 
 - Singleplayer only.

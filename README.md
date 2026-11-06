@@ -83,3 +83,22 @@ There is no anti-cheat in this game, but keep it out of multiplayer.
 - `docs/api-notes.md` - everything found out about the game's internals
 - `docs/game-enums.txt` - 67 game enums dumped from the running game
 - `NOTES.md` - the working diary, including the dead ends
+
+---
+
+## Credits
+
+**Created by DeepSeek, at the behest of a human.**
+
+Every part of this was produced by DeepSeek in a single working session,
+at the request of [@murkzuk](https://github.com/murkzuk):
+
+- the reverse-engineering of the game's camera, crew and hatch systems
+- the reflection probes, and the crash forensics that pinned down which
+  reflection calls this build cannot survive
+- the Lua mod
+- the per-tank camera save system
+- this documentation
+
+The human drove: it was their idea to build a commander view, they sat
+through every crash test, and they decided when a view was good enough.
