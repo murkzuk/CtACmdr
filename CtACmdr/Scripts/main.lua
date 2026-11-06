@@ -628,6 +628,63 @@ end
 
 LoopAsync(60, function() pcall(stripTick) end)
 
+-- ==== kill the bino post-process mask ====
+-- The mask is M_PP_Binoculars_basic, applied by a post-process component.
+-- Camera PostProcessBlendWeight being zeroed did nothing, so the post
+-- process is coming from its own component on the bino camera actor.
+local function killMask()
+    openLog()
+    log("")
+    log("#### kill bino mask ####")
+    local pawn = getPawn()
+    if pawn == nil then log("no pawn"); return end
+    local bino = getPart(pawn, "Binoculars")
+    if bino == nil then log("no Binoculars component"); return end
+
+    local cam = nil
+    pcall(function() cam = bino["CurrentCameraActor"] end)
+    if not isObj(cam) then log("no camera actor - raise the binos first"); return end
+    local camPath = fullname(cam)
+    log("bino actor = " .. camPath)
+
+    local found, disabled = 0, 0
+    local ppList = nil
+    pcall(function() ppList = FindAllOf("PostProcessComponent") end)
+    if ppList then
+        for _, c in ipairs(ppList) do
+            local path = fullname(c)
+            if string.find(path, camPath, 1, true) then
+                found = found + 1
+                local bwBefore = num(c, "BlendWeight")
+                local enBefore = nil
+                pcall(function() enBefore = c["bEnabled"] end)
+                local okW1 = pcall(function() c["BlendWeight"] = 0.0 end)
+                local okW2 = pcall(function() c["bEnabled"] = false end)
+                local bwAfter = num(c, "BlendWeight")
+                local enAfter = nil
+                pcall(function() enAfter = c["bEnabled"] end)
+                log(string.format("  %s", path))
+                log(string.format("     BlendWeight %s -> %s  (write=%s)", tostring(bwBefore), tostring(bwAfter), tostring(okW1)))
+                log(string.format("     bEnabled    %s -> %s  (write=%s)", tostring(enBefore), tostring(enAfter), tostring(okW2)))
+                disabled = disabled + 1
+            end
+        end
+    end
+    log(string.format("post process components on this actor: %d", found))
+    if found == 0 then
+        log("none found - listing every post process actor/volume with 'binoc' in the name")
+        local vols = nil
+        pcall(function() vols = FindAllOf("PostProcessVolume") end)
+        if vols then
+            for _, v in ipairs(vols) do
+                local p = fullname(v)
+                if string.find(string.lower(p), "binoc", 1, true) then log("  volume: " .. p) end
+            end
+        end
+    end
+    log("#### end ####")
+end
+
 local function bind(key, mods, fn, label)
     local guarded = function()
         local ok, err = pcall(fn)
@@ -654,6 +711,7 @@ bind(Key.F1, nil, function() flattenBinos() end, "F1")
 bind(Key.F7, nil, function() inspectBinos() end, "F7")
 bind(Key.F8, nil, function() stripLens() end, "F8")
 bind(Key.F9, nil, function() toggleStrip() end, "F9")
+bind(Key.F5, nil, function() killMask() end, "F5")
 bind(Key.F4, nil, function() cmdrOff() end, "F4")
 bind(Key.F6, nil, function() report() end, "F6")
 
@@ -667,4 +725,4 @@ bind(Key.NUM_FIVE, nil, function() resetOffset() end, "num5")
 bind(Key.NUM_ZERO, nil, function() saveTank() end, "num0")
 
 
-print("[CtACmdr] v1.8 loaded. F9=hold lens off F8=strip once F7=inspect F3=cmdr F4=normal F6=report")
+print("[CtACmdr] v1.9 loaded. F5=kill mask F9=hold lens F8=strip F3=cmdr F4=normal F6=report")
