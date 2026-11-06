@@ -420,6 +420,68 @@ local function toggleBrake()
     log("[brake] keep commander up = " .. tostring(keepUp))
 end
 
+-- ==== flatten the bino lens: normal FOV, no mask ====
+-- Only scalar properties are read. Reading a null object property is fatal
+-- on this build, so textures and materials are listed but never touched.
+local SCALAR = {
+    FloatProperty = true, DoubleProperty = true, BoolProperty = true,
+    IntProperty = true, ByteProperty = true, EnumProperty = true,
+    NameProperty = true, StrProperty = true
+}
+
+local function flattenBinos()
+    openLog()
+    log("")
+    log("#### flatten binos ####")
+    local pawn = getPawn()
+    if pawn == nil then log("no pawn"); return end
+    local bino = getPart(pawn, "Binoculars")
+    if bino == nil then log("no Binoculars component"); return end
+    local setup = nil
+    pcall(function() setup = bino["Setup"] end)
+    if not isObj(setup) then log("no Setup asset"); return end
+    log("Setup = " .. fullname(setup))
+    log("class = " .. classname(setup))
+
+    local cls = nil
+    pcall(function() cls = setup:GetClass() end)
+    if cls == nil then log("no class"); return end
+
+    pcall(function()
+        cls:ForEachProperty(function(prop)
+            local n = fname(prop)
+            local tn = classname(prop)
+            if not SCALAR[tn] then
+                log(string.format("  %-36s %-16s (not read)", n, tn))
+                return
+            end
+            local okV, val = pcall(function() return setup[n] end)
+            log(string.format("  %-36s %-16s = %s", n, tn, tostring(okV and val or "read failed")))
+
+            local low = string.lower(n)
+            local target = nil
+            if tn == "FloatProperty" or tn == "DoubleProperty" then
+                if string.find(low, "fov", 1, true) or string.find(low, "fieldofview", 1, true) then
+                    target = 90.0
+                elseif string.find(low, "postprocess", 1, true) or string.find(low, "vignette", 1, true)
+                    or string.find(low, "mask", 1, true) or string.find(low, "strength", 1, true)
+                    or string.find(low, "opacity", 1, true) or string.find(low, "alpha", 1, true) then
+                    target = 0.0
+                elseif string.find(low, "magnification", 1, true) then
+                    target = 1.0
+                end
+            end
+            if target ~= nil then
+                local okW = pcall(function() setup[n] = target end)
+                local okA, after = pcall(function() return setup[n] end)
+                log(string.format("   -> wrote %s = %s  ok=%s  now=%s", n, tostring(target),
+                    tostring(okW), tostring(okA and after or "?")))
+            end
+        end)
+    end)
+    log("#### end ####")
+end
+
 local function bind(key, mods, fn, label)
     local ok, err = pcall(function()
         if mods and RegisterKeyBindAsync then
@@ -435,6 +497,7 @@ loadProfiles()
 
 bind(Key.F3, nil, function() toggle() end, "F3")
 bind(Key.F2, nil, function() toggleBrake() end, "F2")
+bind(Key.F1, nil, function() flattenBinos() end, "F1")
 bind(Key.F4, nil, function() cmdrOff() end, "F4")
 bind(Key.F6, nil, function() report() end, "F6")
 
@@ -448,4 +511,4 @@ bind(Key.NUM_FIVE, nil, function() resetOffset() end, "num5")
 bind(Key.NUM_ZERO, nil, function() saveTank() end, "num0")
 
 
-print("[CtACmdr] v1.4 loaded. F2=hold commander up F3=cmdr view F4=normal F6=report")
+print("[CtACmdr] v1.5 loaded. F1=flatten binos F2=hold crew up F3=cmdr view F4=normal F6=report")
