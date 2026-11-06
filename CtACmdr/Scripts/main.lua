@@ -224,6 +224,8 @@ local function saveTank()
         state.off.x, state.off.y, state.off.z, tostring(okW)))
 end
 
+local crewState   -- defined further down, used by report()
+
 local function report()
     openLog()
     log("")
@@ -245,6 +247,7 @@ local function report()
             tostring(num(zoom, "MaxCamDistance")),
             tostring(num(zoom, "DefaultCamDistance"))))
     end
+    crewState("report", pawn)
     for name, p in pairs(profiles) do
         log(string.format("saved: %s = %.1f %.1f %.1f", name, p.x or 0, p.y or 0, p.z or 0))
     end
@@ -286,6 +289,81 @@ local hooked = pcall(function()
 end)
 if not hooked then print("[CtACmdr] possession hook not available, press F3 manually") end
 
+-- ==== crew experiment: can we pop the commander up ourselves? ====
+crewState = function(tag, pawn)
+    local cmdr = getPart(pawn, "Crew_Commander")
+    if cmdr ~= nil then
+        local okV, vis = pcall(function() return cmdr["bVisible"] end)
+        log(string.format("%s Crew_Commander.bVisible = %s", tag, tostring(okV and vis or "read failed")))
+    else
+        log(tag .. " no Crew_Commander")
+    end
+    local bino = getPart(pawn, "Binoculars")
+    if bino ~= nil then
+        local okS, st = pcall(function() return bino["CurrentState"] end)
+        log(string.format("%s Binoculars.CurrentState = %s", tag, tostring(okS and st or "read failed")))
+    end
+    local arm = getPart(pawn, "FollowSpringArm")
+    if arm ~= nil then
+        log(string.format("%s arm length = %s", tag, tostring(num(arm, "TargetArmLength"))))
+    end
+end
+
+local function crewPush(value)
+    openLog()
+    log("")
+    log("#### OnBinocularsStateChanged(" .. tostring(value) .. ") ####")
+    local pawn = getPawn()
+    if pawn == nil then log("no pawn"); return end
+    crewState("before", pawn)
+    local cm = getPart(pawn, "CrewManager")
+    if cm == nil then log("no CrewManager"); return end
+    log("calling CrewManager:OnBinocularsStateChanged(" .. tostring(value) .. ")")
+    local ok, err = pcall(function() return cm:OnBinocularsStateChanged(value) end)
+    log("call ok=" .. tostring(ok) .. " err=" .. tostring(err))
+    crewState("after", pawn)
+end
+
+-- ==== observation hooks: log what the game calls, change nothing ====
+local function argDump(...)
+    local n = select("#", ...)
+    local parts = {}
+    for i = 1, n do
+        local v = select(i, ...)
+        if type(v) == "userdata" then
+            local okN, nm = pcall(function() return v:GetFullName() end)
+            parts[#parts + 1] = okN and nm or tostring(v)
+        else
+            parts[#parts + 1] = tostring(v)
+        end
+    end
+    if #parts == 0 then return "()" end
+    return "(" .. table.concat(parts, ", ") .. ")"
+end
+
+local function watch(path, label)
+    local ok, err = pcall(function()
+        RegisterHook(path, function(Context, ...)
+            pcall(function()
+                openLog()
+                local args = argDump(...)
+                local viaContext = ""
+                pcall(function() viaContext = " ctx1=" .. tostring(Context:get()) end)
+                log("[watch] " .. label .. args .. viaContext)
+            end)
+        end)
+    end)
+    if not ok then log("[watch] could not hook " .. label .. ": " .. tostring(err)) end
+end
+
+watch("/Script/Panzer_Elite_2.BinocularsComponent:StartUsingBinoculars", "binos START")
+watch("/Script/Panzer_Elite_2.BinocularsComponent:StopUsingBinoculars", "binos STOP")
+watch("/Script/Panzer_Elite_2.CrewManagerComponent:SetStateForAllCrewAnims", "crew SetStateForAllCrewAnims")
+watch("/Script/Panzer_Elite_2.CrewManagerComponent:SetAllCrewAnimsHidden", "crew SetAllCrewAnimsHidden")
+watch("/Script/Panzer_Elite_2.CrewManagerComponent:PlayCrewMemberAnimation_ByRole", "crew PlayAnimByRole")
+watch("/Script/Panzer_Elite_2.CrewManagerComponent:PlayCrewMemberAnimation_ByID", "crew PlayAnimByID")
+watch("/Script/Panzer_Elite_2.CrewManagerComponent:OnBinocularsStateChanged", "crew OnBinocularsStateChanged")
+
 local function bind(key, mods, fn, label)
     local ok, err = pcall(function()
         if mods and RegisterKeyBindAsync then
@@ -312,4 +390,5 @@ bind(Key.NUM_THREE, nil, function() nudge("z", -STEP) end, "num3")
 bind(Key.NUM_FIVE, nil, function() resetOffset() end, "num5")
 bind(Key.NUM_ZERO, nil, function() saveTank() end, "num0")
 
-print("[CtACmdr] v1.0 loaded. Auto-applies on getting in. F3=toggle F4=normal NUM8/2/4/6/9/3=move NUM5=reset NUM0=save F6=report")
+
+print("[CtACmdr] v1.2 loaded. Watching bino and crew calls. F3=toggle F4=normal F6=report")

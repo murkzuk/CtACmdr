@@ -23,6 +23,14 @@ These cost a lot of crashes to learn.
 3. **Never call a native function without the exact argument list.**
    Get the signature first, from `UFunction:ForEachProperty`.
 
+3b. **Some functions are fatal even with correct arguments.** Confirmed
+   crashes, called with the exact signature the game reported:
+   - `BinocularsComponent:StartUsingBinoculars()`
+   - `CrewManagerComponent:OnBinocularsStateChanged(1)`
+   Both presumably expect the game's own call order or internal state.
+   Drive these systems through their properties or by hooking, not by
+   calling handlers directly.
+
 4. **Safe:** `FindAllOf`, `FindFirstOf`, `StaticFindObject`,
    `ForEachProperty`, `ForEachFunction`, `UEnum:ForEachName`,
    `GetFName`, `GetFullName`, `GetClass`, `GetSuperStruct` (mostly).
