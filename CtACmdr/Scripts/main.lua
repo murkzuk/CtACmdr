@@ -788,6 +788,59 @@ LoopAsync(150, function()
     end
 end)
 
+-- ==== copy the bino camera position onto our own view ====
+-- The bino view is at the commander's eyes but drags a mask along with it.
+-- Our own follow camera is mask free but sits in the wrong place.
+-- Measure the gap between the two and move ours onto theirs.
+local function alignToBino()
+    openLog()
+    log("")
+    log("#### align commander view to the bino camera ####")
+    local pawn = getPawn()
+    if pawn == nil then log("no pawn"); return end
+    local bino = getPart(pawn, "Binoculars")
+    if bino == nil then log("no Binoculars component"); return end
+
+    local cam = nil
+    pcall(function() cam = bino["CurrentCameraActor"] end)
+    if not isObj(cam) then log("raise the binos first, then press HOME"); return end
+    local cc = nil
+    pcall(function() cc = cam["Camera"] end)
+    if not isObj(cc) then log("no Camera on the bino actor"); return end
+
+    local arm = getPart(pawn, "FollowSpringArm")
+    if arm == nil then log("no FollowSpringArm"); return end
+
+    local okB, bloc = pcall(function() return cc:K2_GetComponentLocation() end)
+    local okA, aloc = pcall(function() return arm:K2_GetComponentLocation() end)
+    if not okB or not okA or type(bloc) ~= "table" or type(aloc) ~= "table" then
+        log("could not read the two locations"); return
+    end
+    local dx = (bloc.X or 0) - (aloc.X or 0)
+    local dy = (bloc.Y or 0) - (aloc.Y or 0)
+    local dz = (bloc.Z or 0) - (aloc.Z or 0)
+    log(string.format("bino camera  %.1f, %.1f, %.1f", bloc.X or 0, bloc.Y or 0, bloc.Z or 0))
+    log(string.format("follow arm   %.1f, %.1f, %.1f", aloc.X or 0, aloc.Y or 0, aloc.Z or 0))
+    log(string.format("difference   %.1f, %.1f, %.1f", dx, dy, dz))
+
+    state.off.x = (state.off.x or 0) + dx
+    state.off.y = (state.off.y or 0) + dy
+    state.off.z = (state.off.z or 0) + dz
+    log(string.format("new offset   %.1f, %.1f, %.1f", state.off.x, state.off.y, state.off.z))
+    applyOffset(pawn)
+
+    pcall(function() arm["TargetArmLength"] = 0.0 end)
+    local fc = getPart(pawn, "FollowCamera")
+    if fc ~= nil then
+        local b = num(fc, "FieldOfView")
+        pcall(function() fc["FieldOfView"] = 90.0 end)
+        log(string.format("FollowCamera FOV %s -> %s", tostring(b), tostring(num(fc, "FieldOfView"))))
+    end
+    pinZoom(pawn, true)
+    log("lower the binos now - the view should stay where it was")
+    log("#### end ####")
+end
+
 local function bind(key, mods, fn, label)
     local guarded = function()
         local ok, err = pcall(fn)
@@ -815,7 +868,7 @@ bind(Key.F7, nil, function() inspectBinos() end, "F7")
 bind(Key.F8, nil, function() stripLens() end, "F8")
 bind(Key.F9, nil, function() toggleStrip() end, "F9")
 bind(Key.F5, nil, function() killMask() end, "F5")
-bind(Key.F11, nil, function() watchdog() end, "F11")
+bind(Key.HOME, nil, function() alignToBino() end, "HOME")
 bind(Key.F4, nil, function() cmdrOff() end, "F4")
 bind(Key.F6, nil, function() report() end, "F6")
 
@@ -829,4 +882,4 @@ bind(Key.NUM_FIVE, nil, function() resetOffset() end, "num5")
 bind(Key.NUM_ZERO, nil, function() saveTank() end, "num0")
 
 
-print("[CtACmdr] v2.1 loaded. F11=watchdog F5=kill mask F8=strip F9=hold F3=cmdr F4=normal F6=report")
+print("[CtACmdr] v2.2 loaded. HOME=copy bino camera to our view F5=mask F8=strip F3=cmdr F4=normal F6=report")
