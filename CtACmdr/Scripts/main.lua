@@ -671,17 +671,44 @@ local function killMask()
         end
     end
     log(string.format("post process components on this actor: %d", found))
-    if found == 0 then
-        log("none found - listing every post process actor/volume with 'binoc' in the name")
-        local vols = nil
-        pcall(function() vols = FindAllOf("PostProcessVolume") end)
-        if vols then
-            for _, v in ipairs(vols) do
-                local p = fullname(v)
-                if string.find(string.lower(p), "binoc", 1, true) then log("  volume: " .. p) end
+
+    -- the overlay may simply be a widget: WBP_Vignette and the crosshair scale
+    local widgets = { "WBP_Vignette_C", "WBP_PrimaryCrosshairV7_C", "WBP_PrimaryCrosshairV8_C",
+                      "WBP_SecondaryCrosshair_C", "WBP_BinocularsActionHint_C" }
+    log("-- overlay widgets --")
+    for _, cn in ipairs(widgets) do
+        local list = nil
+        pcall(function() list = FindAllOf(cn) end)
+        if list == nil or #list == 0 then
+            log("   " .. cn .. " : not found")
+        else
+            for _, wobj in ipairs(list) do
+                local before = nil
+                pcall(function() before = wobj["Visibility"] end)
+                local okW = pcall(function() wobj["Visibility"] = 1 end)   -- 1 = Collapsed
+                local after = nil
+                pcall(function() after = wobj["Visibility"] end)
+                log(string.format("   %s  Visibility %s -> %s  (write=%s)", fullname(wobj),
+                    tostring(before), tostring(after), tostring(okW)))
             end
         end
     end
+
+    -- and find the post process material instance if the game made one
+    log("-- bino post process material instances --")
+    local mids = nil
+    pcall(function() mids = FindAllOf("MaterialInstanceDynamic") end)
+    local hits = 0
+    if mids then
+        for _, m in ipairs(mids) do
+            local p = fullname(m)
+            if string.find(string.lower(p), "binocular", 1, true) then
+                hits = hits + 1
+                log("   MID " .. p)
+            end
+        end
+    end
+    if hits == 0 then log("   none found") end
     log("#### end ####")
 end
 
