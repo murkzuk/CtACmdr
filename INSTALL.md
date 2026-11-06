@@ -205,10 +205,19 @@ The zoom component is rewriting the camera arm. That is what
 again and check `CtACmdr.log` for the `zoom pinned` line.
 
 **The game crashed.**
-This game crashes on its own now and then, mod or no mod. Crashes are
-recorded in:
+This game crashes on its own now and then, mod or no mod. Real crashes
+are recorded in:
 
     %LOCALAPPDATA%\call_to_arms_pe\Saved\Crashes\
+
+A folder there per crash, with a minidump and `CrashContext.runtime-xml`
+holding the call stack. If that folder has nothing new, the game did not
+crash.
+
+**A `crash_*.dmp` appeared in Binaries\Win64 but the game kept running.**
+That is UE4SS recording a handled first-chance exception, which this game
+throws often - it writes one most sessions. It is not a crash. Do not
+report it. The two are different files in different folders.
 
 **After a game update.**
 UE4SS usually keeps working. If mods stop loading, reinstall UE4SS from
