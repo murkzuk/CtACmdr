@@ -328,17 +328,28 @@ local function crewPush(value)
 end
 
 -- ==== observation hooks: log what the game calls, change nothing ====
+-- hook params arrive as RemoteUnrealParam handles; :get() reads the value
+local function resolveParam(v)
+    if type(v) ~= "userdata" then return tostring(v) end
+    local ok, val = pcall(function() return v:get() end)
+    if ok and val ~= nil and type(val) ~= "userdata" then
+        return tostring(val)
+    end
+    if ok and type(val) == "userdata" then
+        local okN, nm = pcall(function() return val:GetFullName() end)
+        if okN and nm then return "<" .. tostring(nm) .. ">" end
+        return "object"
+    end
+    local okN, nm = pcall(function() return v:GetFullName() end)
+    if okN and nm then return "<" .. tostring(nm) .. ">" end
+    return "param"
+end
+
 local function argDump(...)
     local n = select("#", ...)
     local parts = {}
     for i = 1, n do
-        local v = select(i, ...)
-        if type(v) == "userdata" then
-            local okN, nm = pcall(function() return v:GetFullName() end)
-            parts[#parts + 1] = okN and nm or tostring(v)
-        else
-            parts[#parts + 1] = tostring(v)
-        end
+        parts[#parts + 1] = resolveParam((select(i, ...)))
     end
     if #parts == 0 then return "()" end
     return "(" .. table.concat(parts, ", ") .. ")"
@@ -369,6 +380,30 @@ watch("/Script/Panzer_Elite_2.CrewManagerComponent:PlayCrewMemberAnimation_ByRol
 watch("/Script/Panzer_Elite_2.CrewManagerComponent:PlayCrewMemberAnimation_ByID", "crew PlayAnimByID")
 watch("/Script/Panzer_Elite_2.CrewManagerComponent:OnBinocularsStateChanged", "crew OnBinocularsStateChanged")
 
+-- ==== the brake: refuse to let him duck back in ====
+local keepUp = false
+
+local brakeOk = pcall(function()
+    RegisterHook("/Script/Panzer_Elite_2.BinocularsComponent:StopUsingBinoculars", function(Context, ...)
+        local okArgs, args = pcall(argDump, ...)
+        openLog()
+        local held = "no"
+        if keepUp then held = "yes" end
+        pcall(log, "[brake] StopUsingBinoculars " .. (okArgs and args or "?") .. " block=" .. held)
+        if keepUp then
+            pcall(log, "[brake] blocked - commander stays up")
+            return true   -- stop the original call
+        end
+    end)
+end)
+if not brakeOk then print("[CtACmdr] brake hook failed") end
+
+local function toggleBrake()
+    openLog()
+    keepUp = not keepUp
+    log("[brake] keep commander up = " .. tostring(keepUp))
+end
+
 local function bind(key, mods, fn, label)
     local ok, err = pcall(function()
         if mods and RegisterKeyBindAsync then
@@ -383,6 +418,7 @@ end
 loadProfiles()
 
 bind(Key.F3, nil, function() toggle() end, "F3")
+bind(Key.F2, nil, function() toggleBrake() end, "F2")
 bind(Key.F4, nil, function() cmdrOff() end, "F4")
 bind(Key.F6, nil, function() report() end, "F6")
 
@@ -396,4 +432,4 @@ bind(Key.NUM_FIVE, nil, function() resetOffset() end, "num5")
 bind(Key.NUM_ZERO, nil, function() saveTank() end, "num0")
 
 
-print("[CtACmdr] v1.2 loaded. Watching bino and crew calls. F3=toggle F4=normal F6=report")
+print("[CtACmdr] v1.3 loaded. F2=hold commander up F3=cmdr view F4=normal F6=report")
