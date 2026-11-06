@@ -268,8 +268,9 @@ The full set, 67 enums with every value, is in `game-enums.txt`.
 
 ## Open questions
 
-- Does raising the binoculars still work while the commander view is on?
-  They use a separate camera actor, so probably yes, but untested.
+- ~~Does raising the binoculars still work while the commander view is
+  on?~~ **Yes, confirmed in game.** They use a separate camera actor so
+  they are unaffected by the follow arm being pinned.
 - `VehicleLookInfo` / `SetLookCustomizations` is the game's own look
   customisation path and was never explored.
 - `EyesBoneName` read back empty on the PzKpfw IV, so it is not the

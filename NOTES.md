@@ -60,11 +60,19 @@ without its signature.
 - v0.9 - pinned, plain numpad. **First working commander view.**
 - v1.0 - auto-applies when you get in a vehicle.
 
+## Verified working
+
+- Commander view holds at the commander position.
+- Free look at 85 pitch / 175 yaw, up from 20 / 45.
+- Numpad positioning, saved per tank.
+- **Binoculars still work from the commander view.** Confirmed in game.
+  They use their own camera actor, so they are unaffected by the
+  follow arm being pinned.
+
 ## Still to try
 
-1. Do the binoculars still work from the commander view?
-2. `VehicleLookInfo` and `SetLookCustomizations` - the game's own look
-   customisation path. Never explored, might be the clean way to do
+1. `VehicleLookInfo` and `SetLookCustomizations` - the game's own look
+   customisation path. Never explored, might be the cleaner way to do
    the look limits.
 3. Whether the game is stable enough with UE4SS to keep going. It has
    crashed on its own several times, including before this mod existed.

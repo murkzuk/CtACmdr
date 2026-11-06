@@ -13,6 +13,8 @@ position for each tank.
 - Free look, fairly wide limits.
 - Your own camera position, nudged with the numpad.
 - One saved position per tank, remembered across sessions.
+- **The binoculars still work.** They use their own camera, so raising
+  them from the commander view behaves normally.
 
 ## Keys
 
