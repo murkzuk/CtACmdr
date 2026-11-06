@@ -4,6 +4,10 @@
 # Windows scripts want CRLF when checked out
 *.ps1 text eol=crlf
 
+# the camera positions are data, not source: keep them byte for byte.
+# the game writes CRLF on Windows and normalising it causes endless churn.
+*_views.txt -text
+
 # do not touch binaries
 *.webp binary
 *.png binary
