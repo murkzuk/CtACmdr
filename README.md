@@ -41,6 +41,11 @@ vehicle that has a saved position.
 
 ## Install
 
+**Full walkthrough, including installing UE4SS from scratch:**
+**[INSTALL.md](INSTALL.md)**
+
+The short version, if you already have UE4SS:
+
     powershell -ExecutionPolicy Bypass -File tools\install.ps1
 
 Or by hand:
