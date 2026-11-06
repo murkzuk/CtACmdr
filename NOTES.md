@@ -90,6 +90,13 @@ The human specified the goal and ran every in-game test.
 
 ## House rules
 
+- **Always run `tools\check-lua.ps1` before installing.** A Lua syntax
+  error makes the whole mod silently fail to load, and the only clue is
+  one line in UE4SS.log after a full game restart. Cost a test run once.
+
+- Log every line with a timestamp. Two runs appending to the same log
+  with no timestamps is impossible to untangle.
+
 - Singleplayer only.
 - Never write into the .pak. Everything is loose files.
 - Every mod keeps a kill switch: delete the folder, set the line in

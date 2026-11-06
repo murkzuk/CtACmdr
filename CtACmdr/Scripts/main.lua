@@ -24,8 +24,11 @@ local function openLog()
 end
 
 local function log(msg)
-    print("[CtACmdr] " .. tostring(msg))
-    if fh then pcall(function() fh:write(tostring(msg) .. "\n"); fh:flush() end) end
+    local stamp = "--:--:--"
+    pcall(function() stamp = os.date("%H:%M:%S") end)
+    local line = "[" .. stamp .. "] " .. tostring(msg)
+    print("[CtACmdr] " .. line)
+    if fh then pcall(function() fh:write(line .. "\n"); fh:flush() end) end
 end
 
 local profiles = {}
@@ -344,13 +347,15 @@ end
 local function watch(path, label)
     local ok, err = pcall(function()
         RegisterHook(path, function(Context, ...)
-            pcall(function()
-                openLog()
-                local args = argDump(...)
-                local viaContext = ""
-                pcall(function() viaContext = " ctx1=" .. tostring(Context:get()) end)
-                log("[watch] " .. label .. args .. viaContext)
-            end)
+            -- Lua forbids '...' inside a nested closure, so pass it to pcall directly
+            local okArgs, args = pcall(argDump, ...)
+            if not okArgs then args = "(arg dump failed)" end
+            openLog()
+            local suffix = ""
+            local okCtx, ctx1 = pcall(function() return Context:get() end)
+            if okCtx then suffix = " ctx1=" .. tostring(ctx1) end
+            local okLog, logErr = pcall(log, "[watch] " .. label .. args .. suffix)
+            if not okLog then print("[CtACmdr] watch log failed: " .. tostring(logErr)) end
         end)
     end)
     if not ok then log("[watch] could not hook " .. label .. ": " .. tostring(err)) end
