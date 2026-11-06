@@ -552,6 +552,43 @@ local function inspectBinos()
     log("#### end ####")
 end
 
+-- ==== strip the lens: keep the bino camera, drop the FOV and the mask ====
+-- Uses only properties confirmed to exist on the bino camera actor.
+local function stripLens()
+    openLog()
+    log("")
+    log("#### strip bino lens ####")
+    local pawn = getPawn()
+    if pawn == nil then log("no pawn"); return end
+    local bino = getPart(pawn, "Binoculars")
+    if bino == nil then log("no Binoculars component"); return end
+
+    local cam = nil
+    pcall(function() cam = bino["CurrentCameraActor"] end)
+    if not isObj(cam) then
+        log("no camera actor - raise the binos first, then press again")
+        return
+    end
+    log("actor  = " .. fullname(cam))
+
+    local cc = nil
+    pcall(function() cc = cam["Camera"] end)
+    if not isObj(cc) then log("no Camera component on the actor"); return end
+    log("camera = " .. fullname(cc))
+
+    local fovBefore = num(cc, "FieldOfView")
+    local okFov = pcall(function() cc["FieldOfView"] = 90.0 end)
+    log(string.format("FieldOfView            %s -> %s   write=%s",
+        tostring(fovBefore), tostring(num(cc, "FieldOfView")), tostring(okFov)))
+
+    local ppBefore = num(cc, "PostProcessBlendWeight")
+    local okPP = pcall(function() cc["PostProcessBlendWeight"] = 0.0 end)
+    log(string.format("PostProcessBlendWeight %s -> %s   write=%s",
+        tostring(ppBefore), tostring(num(cc, "PostProcessBlendWeight")), tostring(okPP)))
+
+    log("#### end ####")
+end
+
 local function bind(key, mods, fn, label)
     local guarded = function()
         local ok, err = pcall(fn)
@@ -576,6 +613,7 @@ bind(Key.F3, nil, function() toggle() end, "F3")
 bind(Key.F2, nil, function() toggleBrake() end, "F2")
 bind(Key.F1, nil, function() flattenBinos() end, "F1")
 bind(Key.F7, nil, function() inspectBinos() end, "F7")
+bind(Key.F8, nil, function() stripLens() end, "F8")
 bind(Key.F4, nil, function() cmdrOff() end, "F4")
 bind(Key.F6, nil, function() report() end, "F6")
 
@@ -589,4 +627,4 @@ bind(Key.NUM_FIVE, nil, function() resetOffset() end, "num5")
 bind(Key.NUM_ZERO, nil, function() saveTank() end, "num0")
 
 
-print("[CtACmdr] v1.6 loaded. F7=inspect binos F1=flatten F2=hold crew F3=cmdr F4=normal F6=report")
+print("[CtACmdr] v1.7 loaded. F8=strip lens F7=inspect F1=flatten F2=hold crew F3=cmdr F4=normal F6=report")
