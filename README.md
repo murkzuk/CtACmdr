@@ -1,5 +1,10 @@
 # CtACmdr - commander view for Call to Arms: Panzer Elite
 
+![Commander view from the cupola of a Panzer IV](docs/commander-view.webp)
+
+*Looking out over the hull roof from the commander's position. Hatch rim,
+MG mount and ammo box in frame. This is the view the mod gives you.*
+
 A mod that gives you a proper tank commander view.
 
 The game ships with an external camera that slides into the gunsight.
