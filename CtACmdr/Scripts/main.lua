@@ -589,6 +589,45 @@ local function stripLens()
     log("#### end ####")
 end
 
+-- ==== hold the lens stripped ====
+-- The bino component animates FieldOfView and PostProcessBlendWeight from
+-- VignetteCurve / CrossFadeCurve every frame, so a single write is undone.
+-- This re-asserts the values on a timer while the hold is on.
+local stripOn = false
+
+local function stripTick()
+    if not stripOn then return end
+    local pawn = getPawn()
+    if pawn == nil then return end
+    local bino = getPart(pawn, "Binoculars")
+    if bino == nil then return end
+
+    -- never touch CurrentCameraActor unless the binos are actually up:
+    -- reading a null object property is fatal on this build
+    local st = nil
+    pcall(function() st = bino["CurrentState"] end)
+    if st ~= 1 then return end
+
+    local cam = nil
+    pcall(function() cam = bino["CurrentCameraActor"] end)
+    if not isObj(cam) then return end
+    local cc = nil
+    pcall(function() cc = cam["Camera"] end)
+    if not isObj(cc) then return end
+
+    pcall(function() cc["FieldOfView"] = 90.0 end)
+    pcall(function() cc["PostProcessBlendWeight"] = 0.0 end)
+end
+
+local function toggleStrip()
+    openLog()
+    stripOn = not stripOn
+    log("[strip] holding lens off = " .. tostring(stripOn))
+    if stripOn then pcall(stripTick) end
+end
+
+LoopAsync(60, function() pcall(stripTick) end)
+
 local function bind(key, mods, fn, label)
     local guarded = function()
         local ok, err = pcall(fn)
@@ -614,6 +653,7 @@ bind(Key.F2, nil, function() toggleBrake() end, "F2")
 bind(Key.F1, nil, function() flattenBinos() end, "F1")
 bind(Key.F7, nil, function() inspectBinos() end, "F7")
 bind(Key.F8, nil, function() stripLens() end, "F8")
+bind(Key.F9, nil, function() toggleStrip() end, "F9")
 bind(Key.F4, nil, function() cmdrOff() end, "F4")
 bind(Key.F6, nil, function() report() end, "F6")
 
@@ -627,4 +667,4 @@ bind(Key.NUM_FIVE, nil, function() resetOffset() end, "num5")
 bind(Key.NUM_ZERO, nil, function() saveTank() end, "num0")
 
 
-print("[CtACmdr] v1.7 loaded. F8=strip lens F7=inspect F1=flatten F2=hold crew F3=cmdr F4=normal F6=report")
+print("[CtACmdr] v1.8 loaded. F9=hold lens off F8=strip once F7=inspect F3=cmdr F4=normal F6=report")
