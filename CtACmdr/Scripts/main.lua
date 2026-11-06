@@ -488,6 +488,70 @@ local function flattenBinos()
     log("#### end ####")
 end
 
+-- ==== inspect: what does the bino camera actually consist of? ====
+-- Names and types only. No object property is ever read, because a null
+-- object read is what crashes this build.
+local function inspectBinos()
+    openLog()
+    log("")
+    log("#### inspect binos ####")
+    local pawn = getPawn()
+    if pawn == nil then log("no pawn"); return end
+    local bino = getPart(pawn, "Binoculars")
+    if bino == nil then log("no Binoculars component"); return end
+
+    local st = nil
+    pcall(function() st = bino["CurrentState"] end)
+    log("CurrentState = " .. tostring(st) .. "   (1 = binos up)")
+
+    local setup = nil
+    pcall(function() setup = bino["Setup"] end)
+    if isObj(setup) then
+        local scls = nil
+        pcall(function() scls = setup:GetClass() end)
+        if scls then
+            log("-- setup struct layouts --")
+            pcall(function()
+                scls:ForEachProperty(function(prop)
+                    local tn = classname(prop)
+                    if tn ~= "StructProperty" then return end
+                    local pn = fname(prop)
+                    log("  " .. pn)
+                    local stype = nil
+                    pcall(function() stype = prop:GetStruct() end)
+                    if stype then
+                        pcall(function()
+                            stype:ForEachProperty(function(f)
+                                log(string.format("      %-30s %s", fname(f), classname(f)))
+                            end)
+                        end)
+                    end
+                end)
+            end)
+        end
+    end
+
+    local cam = nil
+    pcall(function() cam = bino["CurrentCameraActor"] end)
+    if isObj(cam) then
+        log("-- bino camera actor --")
+        log("  " .. fullname(cam))
+        log("  class = " .. classname(cam))
+        local ccls = nil
+        pcall(function() ccls = cam:GetClass() end)
+        if ccls then
+            pcall(function()
+                ccls:ForEachProperty(function(p)
+                    log(string.format("     %-34s %s", fname(p), classname(p)))
+                end)
+            end)
+        end
+    else
+        log("-- no camera actor yet (raise the binos and press again) --")
+    end
+    log("#### end ####")
+end
+
 local function bind(key, mods, fn, label)
     local guarded = function()
         local ok, err = pcall(fn)
@@ -511,6 +575,7 @@ loadProfiles()
 bind(Key.F3, nil, function() toggle() end, "F3")
 bind(Key.F2, nil, function() toggleBrake() end, "F2")
 bind(Key.F1, nil, function() flattenBinos() end, "F1")
+bind(Key.F7, nil, function() inspectBinos() end, "F7")
 bind(Key.F4, nil, function() cmdrOff() end, "F4")
 bind(Key.F6, nil, function() report() end, "F6")
 
@@ -524,4 +589,4 @@ bind(Key.NUM_FIVE, nil, function() resetOffset() end, "num5")
 bind(Key.NUM_ZERO, nil, function() saveTank() end, "num0")
 
 
-print("[CtACmdr] v1.5 loaded. F1=flatten binos F2=hold crew up F3=cmdr view F4=normal F6=report")
+print("[CtACmdr] v1.6 loaded. F7=inspect binos F1=flatten F2=hold crew F3=cmdr F4=normal F6=report")
