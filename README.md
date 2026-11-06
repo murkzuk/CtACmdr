@@ -102,3 +102,12 @@ at the request of [@murkzuk](https://github.com/murkzuk):
 
 The human drove: it was their idea to build a commander view, they sat
 through every crash test, and they decided when a view was good enough.
+
+---
+
+## License
+
+MIT - see [LICENSE](LICENSE).
+
+Use it, change it, ship it, fork it. Just keep the copyright notice, and
+do not hold anyone liable if it breaks something.
