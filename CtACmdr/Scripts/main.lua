@@ -389,14 +389,30 @@ local brakeOk = pcall(function()
         openLog()
         local held = "no"
         if keepUp then held = "yes" end
-        pcall(log, "[brake] StopUsingBinoculars " .. (okArgs and args or "?") .. " block=" .. held)
-        if keepUp then
-            pcall(log, "[brake] blocked - commander stays up")
-            return true   -- stop the original call
-        end
+        pcall(log, "[brake] StopUsingBinoculars " .. (okArgs and args or "?") .. " hold=" .. held)
+        -- do NOT block here: the optics must return to normal.
+        -- the crew notification is the thing to stop, hooked below.
     end)
 end)
 if not brakeOk then print("[CtACmdr] brake hook failed") end
+
+-- this is the one that matters: EBinocularsState 0 = None = duck back in
+local crewBrakeOk = pcall(function()
+    RegisterHook("/Script/Panzer_Elite_2.CrewManagerComponent:OnBinocularsStateChanged", function(Context, ...)
+        local n = select("#", ...)
+        local p1 = nil
+        if n >= 1 then p1 = (select(1, ...)) end
+        local valStr = resolveParam(p1)
+        local num = tonumber(valStr)
+        openLog()
+        pcall(log, "[brake] crew notified state=" .. valStr .. " hold=" .. tostring(keepUp))
+        if keepUp and num == 0 then
+            pcall(log, "[brake] swallowed - commander stays up")
+            return true   -- the crew manager never hears "duck down"
+        end
+    end)
+end)
+if not crewBrakeOk then print("[CtACmdr] crew brake hook failed") end
 
 local function toggleBrake()
     openLog()
@@ -432,4 +448,4 @@ bind(Key.NUM_FIVE, nil, function() resetOffset() end, "num5")
 bind(Key.NUM_ZERO, nil, function() saveTank() end, "num0")
 
 
-print("[CtACmdr] v1.3 loaded. F2=hold commander up F3=cmdr view F4=normal F6=report")
+print("[CtACmdr] v1.4 loaded. F2=hold commander up F3=cmdr view F4=normal F6=report")
