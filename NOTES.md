@@ -94,3 +94,67 @@ The human specified the goal and ran every in-game test.
 - Never write into the .pak. Everything is loose files.
 - Every mod keeps a kill switch: delete the folder, set the line in
   `mods.txt` to 0.
+
+## The grander plan - keep the commander out
+
+Not built. This is the design, so it can be picked up later.
+
+### The idea
+
+The commander model already exists and already animates. At mission start
+he is up, out of the cupola. When you lower the binoculars he ducks back
+inside and the hatch closes. We want to reverse that on demand: F3 opens
+the hatch, he pops up, and he stays up while you drive. The camera then
+rides his actual head instead of an offset we guessed.
+
+### Why it should work
+
+```
+CrewManagerComponent
+  func OnBinocularsStateChanged(NewState Enum)
+  func SetAllCrewAnimsHidden(bNewHidden Bool)
+  func SetStateForAllCrewAnims(NewState Enum, CurrentHealth Float)
+  func PlayCrewMemberAnimation_ByRole(CrewMemberRole Enum, bOnlyIfAlive Bool,
+                                      AnimationTag Struct, Type Enum)
+```
+
+The crew manager subscribes to the binocular state. That is the
+mechanism that pops the commander up and down, so it can be driven
+directly rather than faked.
+
+Supporting evidence:
+
+- `Crew_Commander` is a `CrewMemberSkeletalMeshComponent` on the tank
+  blueprint, and its `bVisible` was false while he was buttoned up.
+- `EBinocularsState`: None = 0, InUse = 1.
+- `ECrewRole`: Commander = 0.
+- The tank blueprint has hatch mesh components: `hatch_01` .. `hatch_07`,
+  `hatch_02_1`, `hatch_03_1`, plus `engine_hatch_L` / `engine_hatch_R`.
+- The exe mentions `SetHatchState`, `GetHatchState`, `SetAllHatchState`,
+  `GetAllHatchStates`, `HatchSocket` and `CrewHatchID`. We never found
+  which class owns them, because only keyword matching functions were
+  listed for `PE2Vehicle`. Enumerating its full function list would
+  answer that, and enumerating names has never crashed.
+
+### Test order, cheapest first
+
+1. One call: `crewManager:OnBinocularsStateChanged(1)`. If he pops up,
+   that is the whole mechanism found in a single line.
+   Watch `Crew_Commander.bVisible` in the log to confirm.
+2. If the body rises but the hatch stays shut, find the hatch owner
+   (step 4 above) and drive it the same way.
+3. If he rises, anchor the camera to his head. Either the
+   `BinocularsBone` the game already returns from `GetBinocularsBone()`,
+   or the eye socket on the `Crew_Commander` mesh. That removes the
+   hand-tuned `-70, 0, 0` offset entirely and would follow the turret
+   properly on every vehicle.
+4. Then F3 becomes: crew up, camera on the head bone. Lowering the
+   binoculars should no longer duck him, or we simply re-pop him.
+
+### The catch
+
+Crew state looks replicated. `BinocularsComponent` has
+`SendCurrentStateToServer` and `SendCurrentOrientationToServer`, and
+`OnRep_BinocularsState` style handlers. In singleplayer the local player
+is the server, so it should hold. In multiplayer it will fight the
+server and probably snap back. Singleplayer only, as with the rest.
