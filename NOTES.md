@@ -102,7 +102,7 @@ The human specified the goal and ran every in-game test.
 - Every mod keeps a kill switch: delete the folder, set the line in
   `mods.txt` to 0.
 
-## The grander plan - keep the commander out
+## The grander plan - PARKED, see docs/dead-ends.md
 
 Not built. This is the design, so it can be picked up later.
 
