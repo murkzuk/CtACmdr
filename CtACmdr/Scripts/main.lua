@@ -712,6 +712,82 @@ local function killMask()
     log("#### end ####")
 end
 
+-- ==== watchdog: is the game overwriting our values? ====
+-- Samples the bino camera and the vignette widget a few times a second.
+-- If they snap back, we are losing a race. If they hold, the effect is
+-- coming from somewhere else entirely.
+local samplesLeft = 0
+local sampleNo = 0
+
+local function sampleOnce()
+    local pawn = getPawn()
+    if pawn == nil then return end
+    local bino = getPart(pawn, "Binoculars")
+    if bino == nil then return end
+    local st = nil
+    pcall(function() st = bino["CurrentState"] end)
+    if st ~= 1 then
+        log(string.format("  #%d binos down, skipping", sampleNo))
+        return
+    end
+    sampleNo = sampleNo + 1
+    local cam = nil
+    pcall(function() cam = bino["CurrentCameraActor"] end)
+    local fov, pp = "?", "?"
+    if isObj(cam) then
+        local cc = nil
+        pcall(function() cc = cam["Camera"] end)
+        if isObj(cc) then
+            fov = tostring(num(cc, "FieldOfView"))
+            pp = tostring(num(cc, "PostProcessBlendWeight"))
+        end
+    end
+    local vis = "?"
+    local list = nil
+    pcall(function() list = FindAllOf("WBP_Vignette_C") end)
+    if list then
+        for _, wobj in ipairs(list) do
+            local p = fullname(wobj)
+            if string.find(p, "Transient", 1, true) then
+                local v = nil
+                pcall(function() v = wobj["Visibility"] end)
+                vis = tostring(v)
+            end
+        end
+    end
+    log(string.format("  #%d FOV=%s PPWeight=%s VignetteVisibility=%s", sampleNo, fov, pp, vis))
+end
+
+local function watchdog()
+    openLog()
+    log("")
+    log("#### watchdog: 20 samples over 3 seconds ####")
+    sampleNo = 0
+    samplesLeft = 20
+    -- post process volumes, once
+    local vols = nil
+    pcall(function() vols = FindAllOf("PostProcessVolume") end)
+    if vols then
+        log("post process volumes in the world: " .. tostring(#vols))
+        for _, v in ipairs(vols) do
+            local en, pri = nil, nil
+            pcall(function() en = v["bEnabled"] end)
+            pcall(function() pri = v["Priority"] end)
+            log(string.format("   %s  enabled=%s priority=%s", fullname(v), tostring(en), tostring(pri)))
+        end
+    end
+end
+
+LoopAsync(150, function()
+    if samplesLeft <= 0 then return end
+    samplesLeft = samplesLeft - 1
+    pcall(sampleOnce)
+    if samplesLeft == 0 then
+        pcall(openLog)
+        log("#### watchdog end ####")
+    end
+end)
+
 local function bind(key, mods, fn, label)
     local guarded = function()
         local ok, err = pcall(fn)
@@ -739,6 +815,7 @@ bind(Key.F7, nil, function() inspectBinos() end, "F7")
 bind(Key.F8, nil, function() stripLens() end, "F8")
 bind(Key.F9, nil, function() toggleStrip() end, "F9")
 bind(Key.F5, nil, function() killMask() end, "F5")
+bind(Key.F11, nil, function() watchdog() end, "F11")
 bind(Key.F4, nil, function() cmdrOff() end, "F4")
 bind(Key.F6, nil, function() report() end, "F6")
 
@@ -752,4 +829,4 @@ bind(Key.NUM_FIVE, nil, function() resetOffset() end, "num5")
 bind(Key.NUM_ZERO, nil, function() saveTank() end, "num0")
 
 
-print("[CtACmdr] v1.9 loaded. F5=kill mask F9=hold lens F8=strip F3=cmdr F4=normal F6=report")
+print("[CtACmdr] v2.1 loaded. F11=watchdog F5=kill mask F8=strip F9=hold F3=cmdr F4=normal F6=report")
