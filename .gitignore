@@ -1,0 +1,5 @@
+# runtime output, not source
+*.log
+*.dmp
+crash_*.dmp
+CtACmdr.log

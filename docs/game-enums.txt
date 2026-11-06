@@ -1,0 +1,558 @@
+
+==================== DUMP [F9] 2026-11-06 16:42:19 ====================
+PC = BP_CampaignPlayerController_C /Game/Campaigns/Ger/GER_02a2.GER_02a2:PersistentLevel.BP_CampaignPlayerController_C_2147476194
+
+#################### ENUMS ####################
+[enum] ETableViewMode
+     ETableViewMode::List = 0
+     ETableViewMode::Tile = 1
+     ETableViewMode::Tree = 2
+     ETableViewMode::ETableViewMode_MAX = 3
+[enum] ESparseVolumeTexturePreviewAttribute
+     ESVTPA_AttributesA_R = 0
+     ESVTPA_AttributesA_G = 1
+     ESVTPA_AttributesA_B = 2
+     ESVTPA_AttributesA_A = 3
+     ESVTPA_AttributesB_R = 4
+     ESVTPA_AttributesB_G = 5
+     ESVTPA_AttributesB_B = 6
+     ESVTPA_AttributesB_A = 7
+     ESVTPA_MAX = 8
+[enum] ECameraFocusMethod
+     ECameraFocusMethod::DoNotOverride = 0
+     ECameraFocusMethod::Manual = 1
+     ECameraFocusMethod::Tracking = 2
+     ECameraFocusMethod::Disable = 3
+     ECameraFocusMethod::MAX = 4
+[enum] ECameraProjectionMode
+     ECameraProjectionMode::Perspective = 0
+     ECameraProjectionMode::Orthographic = 1
+     ECameraProjectionMode::ECameraProjectionMode_MAX = 2
+[enum] ECameraShakePlaySpace
+     ECameraShakePlaySpace::CameraLocal = 0
+     ECameraShakePlaySpace::World = 1
+     ECameraShakePlaySpace::UserDefined = 2
+     ECameraShakePlaySpace::ECameraShakePlaySpace_MAX = 3
+[enum] EViewModeIndex
+     VMI_BrushWireframe = 0
+     VMI_Wireframe = 1
+     VMI_Unlit = 2
+     VMI_Lit = 3
+     VMI_Lit_DetailLighting = 4
+     VMI_LightingOnly = 5
+     VMI_LightComplexity = 6
+     VMI_ShaderComplexity = 8
+     VMI_LightmapDensity = 9
+     VMI_LitLightmapDensity = 10
+     VMI_ReflectionOverride = 11
+     VMI_VisualizeBuffer = 12
+     VMI_StationaryLightOverlap = 14
+     VMI_CollisionPawn = 15
+     VMI_CollisionVisibility = 16
+     VMI_LODColoration = 18
+     VMI_QuadOverdraw = 19
+     VMI_PrimitiveDistanceAccuracy = 20
+     VMI_MeshUVDensityAccuracy = 21
+     VMI_ShaderComplexityWithQuadOverdraw = 22
+     VMI_HLODColoration = 23
+     VMI_GroupLODColoration = 24
+     VMI_MaterialTextureScaleAccuracy = 25
+     VMI_RequiredTextureResolution = 26
+     VMI_PathTracing = 27
+     VMI_RayTracingDebug = 28
+     VMI_VisualizeNanite = 29
+     VMI_VirtualTexturePendingMips = 30
+     VMI_VisualizeLumen = 31
+     VMI_VisualizeVirtualShadowMap = 32
+     VMI_VisualizeGPUSkinCache = 33
+     VMI_VisualizeSubstrate = 34
+     VMI_VisualizeGroom = 35
+     VMI_Max = 36
+     VMI_Unknown = 255
+[enum] EHISMViewRelevanceType
+     EHISMViewRelevanceType::Grass = 0
+     EHISMViewRelevanceType::Foliage = 1
+     EHISMViewRelevanceType::HISM = 2
+     EHISMViewRelevanceType::EHISMViewRelevanceType_MAX = 3
+[enum] EViewStatusForScreenPercentage
+     EViewStatusForScreenPercentage::NonRealtime = 0
+     EViewStatusForScreenPercentage::Desktop = 1
+     EViewStatusForScreenPercentage::Mobile = 2
+     EViewStatusForScreenPercentage::VR = 3
+     EViewStatusForScreenPercentage::PathTracer = 4
+     EViewStatusForScreenPercentage::EViewStatusForScreenPercentage_MAX = 5
+[enum] EMaterialExposedViewProperty
+     MEVP_BufferSize = 0
+     MEVP_FieldOfView = 1
+     MEVP_TanHalfFieldOfView = 2
+     MEVP_ViewSize = 3
+     MEVP_WorldSpaceViewPosition = 4
+     MEVP_WorldSpaceCameraPosition = 5
+     MEVP_ViewportOffset = 6
+     MEVP_TemporalSampleCount = 7
+     MEVP_TemporalSampleIndex = 8
+     MEVP_TemporalSampleOffset = 9
+     MEVP_RuntimeVirtualTextureOutputLevel = 10
+     MEVP_RuntimeVirtualTextureOutputDerivative = 11
+     MEVP_PreExposure = 12
+     MEVP_RuntimeVirtualTextureMaxLevel = 13
+     MEVP_ResolutionFraction = 14
+     MEVP_MAX = 15
+[enum] EParticleCameraOffsetUpdateMethod
+     EPCOUM_DirectSet = 0
+     EPCOUM_Additive = 1
+     EPCOUM_Scalar = 2
+     EPCOUM_MAX = 3
+[enum] EMeshCameraFacingUpAxis
+     CameraFacing_NoneUP = 0
+     CameraFacing_ZUp = 1
+     CameraFacing_NegativeZUp = 2
+     CameraFacing_YUp = 3
+     CameraFacing_NegativeYUp = 4
+     CameraFacing_MAX = 5
+[enum] EMeshCameraFacingOptions
+     XAxisFacing_NoUp = 0
+     XAxisFacing_ZUp = 1
+     XAxisFacing_NegativeZUp = 2
+     XAxisFacing_YUp = 3
+     XAxisFacing_NegativeYUp = 4
+     LockedAxis_ZAxisFacing = 5
+     LockedAxis_NegativeZAxisFacing = 6
+     LockedAxis_YAxisFacing = 7
+     LockedAxis_NegativeYAxisFacing = 8
+     VelocityAligned_ZAxisFacing = 9
+     VelocityAligned_NegativeZAxisFacing = 10
+     VelocityAligned_YAxisFacing = 11
+     VelocityAligned_NegativeYAxisFacing = 12
+     EMeshCameraFacingOptions_MAX = 13
+[enum] EViewTargetBlendFunction
+     VTBlend_Linear = 0
+     VTBlend_Cubic = 1
+     VTBlend_EaseIn = 2
+     VTBlend_EaseOut = 3
+     VTBlend_EaseInOut = 4
+     VTBlend_PreBlended = 5
+     VTBlend_MAX = 6
+[enum] EViewTargetBlendOrder
+     VTBlendOrder_Base = 0
+     VTBlendOrder_Override = 1
+     VTBlendOrder_MAX = 2
+[enum] EPreviewAnimationBlueprintApplicationMethod
+     EPreviewAnimationBlueprintApplicationMethod::LinkedLayers = 0
+     EPreviewAnimationBlueprintApplicationMethod::LinkedAnimGraph = 1
+     EPreviewAnimationBlueprintApplicationMethod::EPreviewAnimationBlueprintApplicationMethod_MAX = 2
+[enum] ECameraShakePatternUpdateResultFlags
+     ECameraShakePatternUpdateResultFlags::ApplyAsAbsolute = 1
+     ECameraShakePatternUpdateResultFlags::SkipAutoScale = 2
+     ECameraShakePatternUpdateResultFlags::SkipAutoPlaySpace = 4
+     ECameraShakePatternUpdateResultFlags::Default = 0
+     ECameraShakePatternUpdateResultFlags::ECameraShakePatternUpdateResultFlags_MAX = 5
+[enum] ECameraShakeDurationType
+     ECameraShakeDurationType::Fixed = 0
+     ECameraShakeDurationType::Infinite = 1
+     ECameraShakeDurationType::Custom = 2
+     ECameraShakeDurationType::ECameraShakeDurationType_MAX = 3
+[enum] ECameraShakeAttenuation
+     ECameraShakeAttenuation::Linear = 0
+     ECameraShakeAttenuation::Quadratic = 1
+     ECameraShakeAttenuation::ECameraShakeAttenuation_MAX = 2
+[enum] ECameraAlphaBlendMode
+     ECameraAlphaBlendMode::CABM_Linear = 0
+     ECameraAlphaBlendMode::CABM_Cubic = 1
+     ECameraAlphaBlendMode::CABM_MAX = 2
+[enum] ENiagaraBakerViewMode
+     ENiagaraBakerViewMode::Perspective = 0
+     ENiagaraBakerViewMode::OrthoFront = 1
+     ENiagaraBakerViewMode::OrthoBack = 2
+     ENiagaraBakerViewMode::OrthoLeft = 3
+     ENiagaraBakerViewMode::OrthoRight = 4
+     ENiagaraBakerViewMode::OrthoTop = 5
+     ENiagaraBakerViewMode::OrthoBottom = 6
+     ENiagaraBakerViewMode::Num = 7
+     ENiagaraBakerViewMode::ENiagaraBakerViewMode_MAX = 8
+[enum] ENiagaraDebugHUDOverviewMode
+     ENiagaraDebugHUDOverviewMode::Overview = 0
+     ENiagaraDebugHUDOverviewMode::Scalability = 1
+     ENiagaraDebugHUDOverviewMode::Performance = 2
+     ENiagaraDebugHUDOverviewMode::PerformanceGraph = 3
+     ENiagaraDebugHUDOverviewMode::GpuComputePerformance = 4
+     ENiagaraDebugHUDOverviewMode::ENiagaraDebugHUDOverviewMode_MAX = 5
+[enum] ENiagaraDebugHUDDOverviewSort
+     ENiagaraDebugHUDDOverviewSort::Name = 0
+     ENiagaraDebugHUDDOverviewSort::NumberRegistered = 1
+     ENiagaraDebugHUDDOverviewSort::NumberActive = 2
+     ENiagaraDebugHUDDOverviewSort::NumberScalability = 3
+     ENiagaraDebugHUDDOverviewSort::MemoryUsage = 4
+     ENiagaraDebugHUDDOverviewSort::RecentlyVisibilty = 5
+     ENiagaraDebugHUDDOverviewSort::ENiagaraDebugHUDDOverviewSort_MAX = 6
+[enum] ENiagaraPreviewGridResetMode
+     ENiagaraPreviewGridResetMode::Never = 0
+     ENiagaraPreviewGridResetMode::Individual = 1
+     ENiagaraPreviewGridResetMode::All = 2
+     ENiagaraPreviewGridResetMode::ENiagaraPreviewGridResetMode_MAX = 3
+[enum] EBinocularsTransitionDirection
+     EBinocularsTransitionDirection::None = 0
+     EBinocularsTransitionDirection::IntoBinoculars = 1
+     EBinocularsTransitionDirection::OutOfBinoculars = 2
+     EBinocularsTransitionDirection::EBinocularsTransitionDirection_MAX = 3
+[enum] EGarageVehicleOperation
+     EGarageVehicleOperation::Add = 0
+     EGarageVehicleOperation::Remove = 1
+     EGarageVehicleOperation::Update = 2
+     EGarageVehicleOperation::EGarageVehicleOperation_MAX = 3
+[enum] EVehicleAdditionalDamageEvent
+     EVehicleAdditionalDamageEvent::None = 0
+     EVehicleAdditionalDamageEvent::FireStarted = 1
+     EVehicleAdditionalDamageEvent::MobilityAffected = 2
+     EVehicleAdditionalDamageEvent::Immobilized = 3
+     EVehicleAdditionalDamageEvent::ShootingDisabled = 4
+     EVehicleAdditionalDamageEvent::Killed = 5
+     EVehicleAdditionalDamageEvent::Annihilated = 6
+     EVehicleAdditionalDamageEvent::TurretPop = 7
+     EVehicleAdditionalDamageEvent::FuelIgnition = 8
+     EVehicleAdditionalDamageEvent::Engine = 9
+     EVehicleAdditionalDamageEvent::AmmoExplosion = 10
+     EVehicleAdditionalDamageEvent::EVehicleAdditionalDamageEvent_MAX = 11
+[enum] EVehicleComponentType
+     EVehicleComponentType::None = 0
+     EVehicleComponentType::Hull = 1
+     EVehicleComponentType::Turret = 2
+     EVehicleComponentType::Mantlet = 3
+     EVehicleComponentType::Gun = 4
+     EVehicleComponentType::Suspension = 5
+     EVehicleComponentType::Track = 6
+     EVehicleComponentType::Wheel = 7
+     EVehicleComponentType::ReturnRoller = 8
+     EVehicleComponentType::Engine = 9
+     EVehicleComponentType::AmmoStorage = 10
+     EVehicleComponentType::WetAmmoStorage = 11
+     EVehicleComponentType::FuelTank = 12
+     EVehicleComponentType::Drivetrain = 13
+     EVehicleComponentType::GunMount = 14
+     EVehicleComponentType::Crew = 15
+     EVehicleComponentType::Skirt = 16
+     EVehicleComponentType::Additional = 17
+     EVehicleComponentType::EVehicleComponentType_MAX = 18
+[enum] EVehicleComponentState
+     EVehicleComponentState::Normal = 0
+     EVehicleComponentState::Damaged = 1
+     EVehicleComponentState::Destroyed = 2
+     EVehicleComponentState::Count = 3
+     EVehicleComponentState::EVehicleComponentState_MAX = 4
+[enum] EVehicleFireInputHandlerType
+     EVehicleFireInputHandlerType::None = 0
+     EVehicleFireInputHandlerType::WeaponryComponent = 1
+     EVehicleFireInputHandlerType::BinocularsComponent = 2
+     EVehicleFireInputHandlerType::EVehicleFireInputHandlerType_MAX = 3
+[enum] EVehicleLookInputHandlerType
+     EVehicleLookInputHandlerType::None = 0
+     EVehicleLookInputHandlerType::ZoomComponent = 1
+     EVehicleLookInputHandlerType::BinocularsComponent = 2
+     EVehicleLookInputHandlerType::EVehicleLookInputHandlerType_MAX = 3
+[enum] EGarageCamera
+     EGarageCamera::PreviewVehicle = 0
+     EGarageCamera::Crew = 1
+     EGarageCamera::MapBriefing = 2
+     EGarageCamera::MapBriefingLeft = 3
+     EGarageCamera::Radio = 4
+     EGarageCamera::CommunicationRadioStation = 5
+     EGarageCamera::PlatoonVehicle1 = 6
+     EGarageCamera::PlatoonVehicle2 = 7
+     EGarageCamera::PlatoonVehicle3 = 8
+     EGarageCamera::PlatoonVehicle4 = 9
+     EGarageCamera::PlatoonVehicle5 = 10
+     EGarageCamera::None = 11
+     EGarageCamera::EGarageCamera_MAX = 12
+[enum] EVehicleType
+     EVehicleType::None = 0
+     EVehicleType::Light = 1
+     EVehicleType::Medium = 2
+     EVehicleType::Heavy = 3
+     EVehicleType::EVehicleType_MAX = 4
+[enum] EVehicleHitAdditionalType
+     EVehicleHitAdditionalType::None = 0
+     EVehicleHitAdditionalType::Pierce = 1
+     EVehicleHitAdditionalType::Explosion = 2
+     EVehicleHitAdditionalType::EVehicleHitAdditionalType_MAX = 3
+[enum] EBinocularsState
+     EBinocularsState::None = 0
+     EBinocularsState::InUse = 1
+     EBinocularsState::EBinocularsState_MAX = 2
+[enum] EBinocularsCameraSwitchType
+     EBinocularsCameraSwitchType::Slow = 0
+     EBinocularsCameraSwitchType::Fast = 1
+     EBinocularsCameraSwitchType::EBinocularsCameraSwitchType_MAX = 2
+[enum] ECrewRole
+     ECrewRole::Commander = 0
+     ECrewRole::Driver = 1
+     ECrewRole::Gunner = 2
+     ECrewRole::Loader = 3
+     ECrewRole::RadioOperator = 4
+     ECrewRole::Crew = 5
+     ECrewRole::ECrewRole_MAX = 6
+[enum] ECrewMessageAdditionalInfo
+     ECrewMessageAdditionalInfo::None = 0
+     ECrewMessageAdditionalInfo::CrewBark = 1
+     ECrewMessageAdditionalInfo::ECrewMessageAdditionalInfo_MAX = 2
+[enum] EBinocularsCameraParameterSource
+     EBinocularsCameraParameterSource::StartCamera = 0
+     EBinocularsCameraParameterSource::EndCamera = 1
+     EBinocularsCameraParameterSource::Constant = 2
+     EBinocularsCameraParameterSource::EBinocularsCameraParameterSource_MAX = 3
+[enum] EBinocularsCameraParameter
+     EBinocularsCameraParameter::FOV = 0
+     EBinocularsCameraParameter::PostProcessStrength = 1
+     EBinocularsCameraParameter::EBinocularsCameraParameter_MAX = 2
+[enum] EBinocularsLimitType
+     EBinocularsLimitType::None = 0
+     EBinocularsLimitType::Absolute = 1
+     EBinocularsLimitType::RelativeToBone = 2
+     EBinocularsLimitType::RelativeToActor = 3
+     EBinocularsLimitType::EBinocularsLimitType_MAX = 4
+[enum] ECrewAnimationImplementedEvent
+     ECrewAnimationImplementedEvent::None = 0
+     ECrewAnimationImplementedEvent::StateChange = 1
+     ECrewAnimationImplementedEvent::DamageReceived = 2
+     ECrewAnimationImplementedEvent::Count = 3
+     ECrewAnimationImplementedEvent::ECrewAnimationImplementedEvent_MAX = 4
+[enum] ECrewMemberAnimationEventType
+     ECrewMemberAnimationEventType::StartAnimation = 0
+     ECrewMemberAnimationEventType::StopAnimation = 1
+     ECrewMemberAnimationEventType::CancelAnimation = 2
+     ECrewMemberAnimationEventType::ECrewMemberAnimationEventType_MAX = 3
+[enum] ECrewMessageEvent
+     ECrewMessageEvent::PlayerWasHit_Penetration = 0
+     ECrewMessageEvent::PlayerWasHit_NoPenetration = 1
+     ECrewMessageEvent::PlayerWasHit_Ricochet = 2
+     ECrewMessageEvent::PlayerComponentDamaged = 3
+     ECrewMessageEvent::PlayerComponentDestroyed = 4
+     ECrewMessageEvent::PlayerCrewHit = 5
+     ECrewMessageEvent::PlayerCrewIncapacitated = 6
+     ECrewMessageEvent::PlayerMobilityAffected = 7
+     ECrewMessageEvent::PlayerMobilityDisabled = 8
+     ECrewMessageEvent::PlayerShootingDisabled = 9
+     ECrewMessageEvent::PlayerCrewDown_Radio = 10
+     ECrewMessageEvent::PlayerCrewDown_Gunner = 11
+     ECrewMessageEvent::PlayerCrewDown_Loader = 12
+     ECrewMessageEvent::PlayerCrewDown_Driver = 13
+     ECrewMessageEvent::PlayerCrewDown_Commander = 14
+     ECrewMessageEvent::PlayerCrewDown_Default = 15
+     ECrewMessageEvent::EnemyWasHit_Penetration = 16
+     ECrewMessageEvent::EnemyWasHit_NoPenetration = 17
+     ECrewMessageEvent::EnemyWasHit_Ricochet = 18
+     ECrewMessageEvent::EnemyComponentDamaged = 19
+     ECrewMessageEvent::EnemyComponentDestroyed = 20
+     ECrewMessageEvent::EnemyCrewIncapacitated = 21
+     ECrewMessageEvent::EnemyShootingDisabled = 22
+     ECrewMessageEvent::EnemyMobilityAffected = 23
+     ECrewMessageEvent::EnemyMobilityDisabled = 24
+     ECrewMessageEvent::EnemyDestroyed = 25
+     ECrewMessageEvent::EnemyDestroyed_Tank = 26
+     ECrewMessageEvent::EnemyDestroyed_ATGun = 27
+     ECrewMessageEvent::EnemyDestroyed_LightVehicle = 28
+     ECrewMessageEvent::EnemyDestroyedWithOneShot = 29
+     ECrewMessageEvent::EnemyCharacterKilled = 30
+     ECrewMessageEvent::ReloadStarted = 31
+     ECrewMessageEvent::ReloadPaused = 32
+     ECrewMessageEvent::ReloadFinished = 33
+     ECrewMessageEvent::CannotFire_Reloading = 34
+     ECrewMessageEvent::OutOfAmmo = 35
+     ECrewMessageEvent::NeedToRepair = 36
+     ECrewMessageEvent::RepairStarted = 37
+     ECrewMessageEvent::RepairPaused = 38
+     ECrewMessageEvent::RepairFinished = 39
+     ECrewMessageEvent::PlatoonOrder_Attack = 40
+     ECrewMessageEvent::PlatoonOrder_Defend = 41
+     ECrewMessageEvent::PlatoonOrder_Hold = 42
+     ECrewMessageEvent::PlatoonOrder_Follow = 43
+     ECrewMessageEvent::PlatoonOrder_Mount = 44
+     ECrewMessageEvent::PlatoonOrder_NoOrder = 45
+     ECrewMessageEvent::EnemyVehicleSpotted = 46
+     ECrewMessageEvent::EnemyVehicleHidden = 47
+     ECrewMessageEvent::EnemyCharacterSpotted = 48
+     ECrewMessageEvent::EnemySurrendered = 49
+     ECrewMessageEvent::AllyUnderFire = 50
+     ECrewMessageEvent::AreaCaptured = 51
+     ECrewMessageEvent::AreaLost = 52
+     ECrewMessageEvent::OnPointsAdvantage = 53
+     ECrewMessageEvent::OnPointsDisadvantage = 54
+     ECrewMessageEvent::DeadEnd = 55
+     ECrewMessageEvent::Count = 56
+     ECrewMessageEvent::ECrewMessageEvent_MAX = 57
+[enum] EGarageVehicleButtonState
+     EGarageVehicleButtonState::DEFAULT = 0
+     EGarageVehicleButtonState::ACTIVE = 1
+     EGarageVehicleButtonState::LOCKED = 2
+     EGarageVehicleButtonState::EGarageVehicleButtonState_MAX = 3
+[enum] EVehicleProceduralAnimType
+     EVehicleProceduralAnimType::Curve = 0
+     EVehicleProceduralAnimType::Noise = 1
+     EVehicleProceduralAnimType::EVehicleProceduralAnimType_MAX = 2
+[enum] EVehicleProceduralAnimMagnitudeType
+     EVehicleProceduralAnimMagnitudeType::Const = 0
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsPrimaryXMin = 1
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsPrimaryXMax = 2
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsPrimaryYMin = 3
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsPrimaryYMax = 4
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsAAMGXMin = 5
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsAAMGXMax = 6
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsAAMGYMin = 7
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsAAMGYMax = 8
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsHullMGXMin = 9
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsHullMGXMax = 10
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsHullMGYMin = 11
+     EVehicleProceduralAnimMagnitudeType::WeaponLimitsHullMGYMax = 12
+     EVehicleProceduralAnimMagnitudeType::Count = 13
+     EVehicleProceduralAnimMagnitudeType::EVehicleProceduralAnimMagnitudeType_MAX = 14
+[enum] EPE2VehicleDifferentialType
+     EPE2VehicleDifferentialType::Wheeled = 0
+     EPE2VehicleDifferentialType::TrackedSingle = 1
+     EPE2VehicleDifferentialType::TrackedDouble = 2
+     EPE2VehicleDifferentialType::EPE2VehicleDifferentialType_MAX = 3
+[enum] EPE2VehicleThrottleState
+     EPE2VehicleThrottleState::Throttle_None = 0
+     EPE2VehicleThrottleState::Throttle_Forward = 1
+     EPE2VehicleThrottleState::Throttle_Reverse = 2
+     EPE2VehicleThrottleState::Throttle_MAX = 3
+[enum] ECrewRankUSA
+     ECrewRankUSA::NotFromUSA = 0
+     ECrewRankUSA::Private = 1
+     ECrewRankUSA::PrivateFirstClass = 2
+     ECrewRankUSA::Corporal = 3
+     ECrewRankUSA::Sergeant = 4
+     ECrewRankUSA::StaffSergeant = 5
+     ECrewRankUSA::TechnicalSergeant = 6
+     ECrewRankUSA::MasterSergeant = 7
+     ECrewRankUSA::SecondLieutenant = 8
+     ECrewRankUSA::FirstLieutenant = 9
+     ECrewRankUSA::Major = 10
+     ECrewRankUSA::Captain = 11
+     ECrewRankUSA::LieutenantColonel = 12
+     ECrewRankUSA::Colonel = 13
+     ECrewRankUSA::ECrewRankUSA_MAX = 14
+[enum] ECrewRankGER
+     ECrewRankGER::NotFromGermany = 0
+     ECrewRankGER::Gefreiter = 1
+     ECrewRankGER::Obergefreiter = 2
+     ECrewRankGER::Unteroffizier = 3
+     ECrewRankGER::Unterfeldwebel = 4
+     ECrewRankGER::Feldwebel = 5
+     ECrewRankGER::Oberfeldwebel = 6
+     ECrewRankGER::Hauptfeldwebel = 7
+     ECrewRankGER::Stabsfeldwebel = 8
+     ECrewRankGER::Leutnant = 9
+     ECrewRankGER::Oberleutnant = 10
+     ECrewRankGER::Hauptmann = 11
+     ECrewRankGER::Major = 12
+     ECrewRankGER::Oberstleutnant = 13
+     ECrewRankGER::Oberst = 14
+     ECrewRankGER::ECrewRankGER_MAX = 15
+[enum] EVehicleAttachmentType
+     EVehicleAttachmentType::Static = 0
+     EVehicleAttachmentType::Skeletal = 1
+     EVehicleAttachmentType::Complex = 2
+     EVehicleAttachmentType::EVehicleAttachmentType_MAX = 3
+[enum] EVehicleDecorVariantType
+     EVehicleDecorVariantType::None = 0
+     EVehicleDecorVariantType::Random = 1
+     EVehicleDecorVariantType::SpecifiedVariants = 2
+     EVehicleDecorVariantType::All = 3
+     EVehicleDecorVariantType::EVehicleDecorVariantType_MAX = 4
+[enum] EVehicleDecorDefaultSelectorType
+     EVehicleDecorDefaultSelectorType::None = 0
+     EVehicleDecorDefaultSelectorType::RandomOrNone = 1
+     EVehicleDecorDefaultSelectorType::Constant = 2
+     EVehicleDecorDefaultSelectorType::EVehicleDecorDefaultSelectorType_MAX = 3
+[enum] EVehicleComponentSearchResult
+     EVehicleComponentSearchResult::Found = 0
+     EVehicleComponentSearchResult::NotFound = 1
+     EVehicleComponentSearchResult::EVehicleComponentSearchResult_MAX = 2
+[enum] EVehicleComponentFlags
+     EVehicleComponentFlags::CF_None = 0
+     EVehicleComponentFlags::CF_Repairable = 1
+     EVehicleComponentFlags::CF_Damageable = 2
+     EVehicleComponentFlags::CF_Critical = 4
+     EVehicleComponentFlags::CF_AllowsSpall = 8
+     EVehicleComponentFlags::CF_MAX = 9
+[enum] EVehicleCategory
+     EVehicleCategory::Tank = 0
+     EVehicleCategory::ATGun = 1
+     EVehicleCategory::LightVehicle = 2
+     EVehicleCategory::EVehicleCategory_MAX = 3
+[enum] EGizmoElementViewDependentType
+     EGizmoElementViewDependentType::None = 0
+     EGizmoElementViewDependentType::Axis = 1
+     EGizmoElementViewDependentType::Plane = 2
+     EGizmoElementViewDependentType::EGizmoElementViewDependentType_MAX = 3
+[enum] EGizmoElementViewAlignType
+     EGizmoElementViewAlignType::None = 0
+     EGizmoElementViewAlignType::PointOnly = 1
+     EGizmoElementViewAlignType::PointEye = 2
+     EGizmoElementViewAlignType::PointScreen = 3
+     EGizmoElementViewAlignType::Axial = 4
+     EGizmoElementViewAlignType::EGizmoElementViewAlignType_MAX = 5
+[enum] EViewInteractionState
+     EViewInteractionState::None = 0
+     EViewInteractionState::Hovered = 1
+     EViewInteractionState::Focused = 2
+     EViewInteractionState::EViewInteractionState_MAX = 3
+[enum] EUVLayoutPreviewSide
+     EUVLayoutPreviewSide::Left = 0
+     EUVLayoutPreviewSide::Right = 1
+     EUVLayoutPreviewSide::EUVLayoutPreviewSide_MAX = 2
+[enum] ECameraNodeInstantiationState
+     ECameraNodeInstantiationState::None = 0
+     ECameraNodeInstantiationState::HasInstantiations = 1
+     ECameraNodeInstantiationState::IsInstantiated = 2
+     ECameraNodeInstantiationState::ECameraNodeInstantiationState_MAX = 3
+[enum] ECameraAnimationPlaySpace
+     ECameraAnimationPlaySpace::CameraLocal = 0
+     ECameraAnimationPlaySpace::World = 1
+     ECameraAnimationPlaySpace::UserDefined = 2
+     ECameraAnimationPlaySpace::ECameraAnimationPlaySpace_MAX = 3
+[enum] ECameraAnimationEasingType
+     ECameraAnimationEasingType::Linear = 0
+     ECameraAnimationEasingType::Sinusoidal = 1
+     ECameraAnimationEasingType::Quadratic = 2
+     ECameraAnimationEasingType::Cubic = 3
+     ECameraAnimationEasingType::Quartic = 4
+     ECameraAnimationEasingType::Quintic = 5
+     ECameraAnimationEasingType::Exponential = 6
+     ECameraAnimationEasingType::Circular = 7
+     ECameraAnimationEasingType::ECameraAnimationEasingType_MAX = 8
+[enum] ECameraNodeFlags
+     ECameraNodeFlags::None = 0
+     ECameraNodeFlags::RequiresReset = 1
+     ECameraNodeFlags::ECameraNodeFlags_MAX = 2
+[enum] ECameraModeLayer
+     ECameraModeLayer::Base = 0
+     ECameraModeLayer::Main = 1
+     ECameraModeLayer::Global = 2
+     ECameraModeLayer::Visual = 3
+     ECameraModeLayer::User0 = 4
+     ECameraModeLayer::User1 = 5
+     ECameraModeLayer::User2 = 6
+     ECameraModeLayer::ECameraModeLayer_MAX = 7
+[enum] ESmoothCameraBlendType
+     ESmoothCameraBlendType::SmoothStep = 0
+     ESmoothCameraBlendType::SmootherStep = 1
+     ESmoothCameraBlendType::ESmoothCameraBlendType_MAX = 2
+[enum] EInterchangeCameraProjectionType
+     EInterchangeCameraProjectionType::Perspective = 0
+     EInterchangeCameraProjectionType::Orthographic = 1
+     EInterchangeCameraProjectionType::EInterchangeCameraProjectionType_MAX = 2
+################## END ENUMS ##################
+
+pawn    = <BP_PzKpfwIVAusfG_C> BP_PzKpfwIVAusfG_C /Game/Campaigns/Ger/GER_02a2.GER_02a2:PersistentLevel.BP_PzKpfwIVAusfG_C_2147442598
+vehicle = nil
+PAWN
+  full   : BP_PzKpfwIVAusfG_C /Game/Campaigns/Ger/GER_02a2.GER_02a2:PersistentLevel.BP_PzKpfwIVAusfG_C_2147442598
+  class  : BP_PzKpfwIVAusfG_C
+  -- class chain --
+     BP_PzKpfwIVAusfG_C
+     BP_TrackedVehicle_Generic_C
+     PE2TrackedVehicle
+     PE2Vehicle
+     Pawn
+     Actor
+     Object
