@@ -1,0 +1,11 @@
+# normalise line endings in the repository
+* text=auto eol=lf
+
+# Windows scripts want CRLF when checked out
+*.ps1 text eol=crlf
+
+# do not touch binaries
+*.webp binary
+*.png binary
+*.jpg binary
+*.dmp binary
