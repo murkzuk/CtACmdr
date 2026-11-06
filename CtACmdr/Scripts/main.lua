@@ -74,6 +74,12 @@ local function fullname(o)
     return "?"
 end
 
+local function classname(o)
+    local ok, c = pcall(function() return o:GetClass() end)
+    if ok and c then return fname(c) end
+    return "?"
+end
+
 local function isObj(v)
     return type(v) == "userdata"
 end
@@ -483,11 +489,18 @@ local function flattenBinos()
 end
 
 local function bind(key, mods, fn, label)
+    local guarded = function()
+        local ok, err = pcall(fn)
+        if not ok then
+            openLog()
+            log("[ERROR] " .. tostring(label) .. ": " .. tostring(err))
+        end
+    end
     local ok, err = pcall(function()
         if mods and RegisterKeyBindAsync then
-            RegisterKeyBindAsync(key, mods, fn)
+            RegisterKeyBindAsync(key, mods, guarded)
         else
-            RegisterKeyBind(key, fn)
+            RegisterKeyBind(key, guarded)
         end
     end)
     if not ok then print("[CtACmdr] bind failed for " .. tostring(label) .. ": " .. tostring(err)) end
