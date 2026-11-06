@@ -1,5 +1,5 @@
 -- CtACmdr v1.0 : holds the camera in, plain numpad to move it, saved per tank.
--- MIT licensed, (c) 2026 Jeff Murkin. See LICENSE.
+-- MIT licensed, (c) 2026 murkz. See LICENSE.
 --
 --   F3          commander view ON  (pins zoom distances so the game cannot slide out)
 --   F4          normal view
