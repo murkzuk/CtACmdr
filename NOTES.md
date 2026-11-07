@@ -189,3 +189,25 @@ Run on 07/11/2026, PzKpfw IV Ausf G, session 05:00 to 05:02. Read from
 The two untested branches are not exotic, but they are also not
 load-bearing for normal play. Switching vehicles in one session, and
 being on foot, do not happen in the campaign as tested.
+
+## The UE4SS download pin - what it does and does not prove
+
+`tools\setup.ps1` refuses to install UE4SS unless the zip matches:
+
+    UE4SS_v3.0.1.zip
+    5,523,402 bytes
+    SHA256 4B47D4BCEDDD2F561A4E395BFA00924CCFC945AF576A2D0C613E6537846C57EC
+
+That value was confirmed by downloading the asset twice, independently,
+and getting identical bytes both times on 07/11/2026.
+
+**What it catches:** a corrupted download, a truncated file, or something
+substituted on the network.
+
+**What it cannot catch:** tampering at the source. GitHub's own `digest`
+field is empty for this asset - it was uploaded February 2024, before
+GitHub computed server-side digests - so nothing third-party independently
+confirms those bytes. UE4SS also does not publish signed releases.
+
+If UE4SS ever publishes signed assets or a digest, switch to verifying
+against that instead of a hash copied out of a download.
