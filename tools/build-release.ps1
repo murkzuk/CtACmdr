@@ -20,7 +20,8 @@
 param(
     [Parameter(Mandatory = $true)][string]$Version,
     [string]$UE4SSZip = "",
-    [string]$OutDir = ""
+    [string]$OutDir = "",
+    [switch]$KeepDumps
 )
 
 $ErrorActionPreference = "Stop"
@@ -129,6 +130,22 @@ try {
     }
     [IO.File]::WriteAllText($modsTxtPath, $modsTxt, (New-Object Text.UTF8Encoding($false)))
     Write-Host "Switched off the cheat and console enabler mods in mods.txt"
+
+    # UE4SS writes a ~33 MB crash_*.dmp whenever it catches an exception, and
+    # this game throws them most sessions. Users should not be collecting
+    # hundreds of megabytes, so dumping ships off. -KeepDumps leaves it on.
+    $iniPath = Join-Path $full "ue4ss\UE4SS-settings.ini"
+    if (-not (Test-Path -LiteralPath $iniPath)) { throw "The UE4SS zip has no ue4ss\UE4SS-settings.ini" }
+    if (-not $KeepDumps) {
+        $iniText = [IO.File]::ReadAllText($iniPath)
+        if ($iniText -match "(?m)^EnableDumping\s*=\s*1") {
+            $iniText = [regex]::Replace($iniText, "(?m)^EnableDumping\s*=\s*1", "EnableDumping = 0")
+            [IO.File]::WriteAllText($iniPath, $iniText, (New-Object Text.UTF8Encoding($false)))
+            Write-Host "Turned off UE4SS crash dumping in the shipped settings"
+        } else {
+            Write-Host "Crash dumping already off in the shipped settings"
+        }
+    }
 
     $readme = (Get-Content -LiteralPath (Join-Path $kit "READ ME FIRST.txt") -Raw).Replace("{VERSION}", "v" + $Version)
     [IO.File]::WriteAllText((Join-Path $full "READ ME FIRST.txt"), $readme, (New-Object Text.UTF8Encoding($false)))
