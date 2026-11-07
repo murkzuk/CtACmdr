@@ -1,4 +1,4 @@
--- CtACmdr v1.3 : commander view for Call to Arms: Panzer Elite
+-- CtACmdr v1.5 : commander view for Call to Arms: Panzer Elite
 -- MIT licensed, (c) 2026 murkz. See LICENSE.
 --
 --   F3            commander view on / off
@@ -40,10 +40,9 @@ end
 -- ---------- saved positions, one line per tank ----------
 local profiles = {}
 
-local function loadProfiles()
-    profiles = {}
-    local ok, h = pcall(io.open, SAVE, "r")
-    if not ok or not h then return end
+local function readProfilesFrom(path)
+    local ok, h = pcall(io.open, path, "r")
+    if not ok or not h then return false end
     pcall(function()
         for line in h:lines() do
             local name, x, y, z = string.match(line, "^%s*([%w_%-%.]+)%s+([%-%d%.]+)%s+([%-%d%.]+)%s+([%-%d%.]+)")
@@ -53,6 +52,15 @@ local function loadProfiles()
         end
     end)
     pcall(function() h:close() end)
+    return true
+end
+
+local function loadProfiles()
+    profiles = {}
+    -- the .bak is what a failed save leaves behind
+    if not readProfilesFrom(SAVE) then
+        readProfilesFrom(SAVE .. ".bak")
+    end
 end
 
 -- Write to a temp file first, then swap it in. Truncating the real file
@@ -82,7 +90,12 @@ local function saveProfiles()
     pcall(function() os.remove(bak) end)
     pcall(function() os.rename(SAVE, bak) end)
 
-    if not pcall(function() return os.rename(tmp, SAVE) end) then
+    -- os.rename returns nil plus a message on failure; it does not raise,
+    -- so pcall alone always looks like success
+    local callOk, renamed = pcall(function() return os.rename(tmp, SAVE) end)
+    if (not callOk) or (renamed == nil) then
+        -- put the previous file back so nothing is lost
+        pcall(function() os.rename(bak, SAVE) end)
         pcall(function() os.remove(tmp) end)
         return false
     end
@@ -155,8 +168,49 @@ end
 local function getPart(pawn, name)
     local v = nil
     pcall(function() v = pawn[name] end)
-    if isObj(v) then return v end
+    if isObj(v) then
+        local ok = false
+        pcall(function() ok = v:IsValid() end)
+        if ok then return v end
+    end
     return nil
+end
+
+-- Reading a property name that does not exist is fatal on this build, so
+-- never touch vehicle properties on a pawn that is not a vehicle.
+local vehicleClass = nil
+pcall(function() vehicleClass = StaticFindObject("/Script/Panzer_Elite_2.PE2Vehicle") end)
+
+local vehicleCheckWarned = false
+
+local function isVehicle(pawn)
+    if pawn == nil then return false end
+    if vehicleClass ~= nil then
+        local ok, res = pcall(function() return pawn:IsA(vehicleClass) end)
+        if ok and res ~= nil then return res end
+    end
+    if not vehicleCheckWarned then
+        vehicleCheckWarned = true
+        openLog()
+        log("[WARN] could not check the pawn class with IsA. Allowing the pawn through,")
+        log("       which is what older versions did. A dismounted pawn may then")
+        log("       trip a property read, so check UE4SS.log if the game freezes.")
+    end
+    -- Deliberately permissive: guessing from the class name would reject a
+    -- tank like BP_PzKpfwIVAusfG_C, which contains neither word, and then the
+    -- mod would silently do nothing at all.
+    return true
+end
+
+local function getVehicle()
+    local pawn = getPawn()
+    if pawn == nil then return nil end
+    if not isVehicle(pawn) then
+        openLog()
+        log("  pawn is not a vehicle: " .. fullname(pawn))
+        return nil
+    end
+    return pawn
 end
 
 -- ---------- the camera ----------
@@ -166,6 +220,40 @@ end
 local DEFAULT = { x = -63.9, y = -3.0, z = -3.4 }
 
 local state = { off = { x = DEFAULT.x, y = DEFAULT.y, z = DEFAULT.z }, on = false }
+
+-- Originals are kept per vehicle, keyed by the pawn's full name, and are
+-- recorded BEFORE anything is written. A vehicle that is already pinned is
+-- never recorded, because its current values are ours, not the game's.
+local originals = {}
+local pinned = {}
+local lastPinned = nil
+
+local function recordOriginals(pawn)
+    local key = fullname(pawn)
+    if originals[key] ~= nil then return originals[key] end
+    if pinned[key] then
+        log("  already pinned, keeping the values recorded earlier")
+        return nil
+    end
+    local o = {}
+    local zoom = getPart(pawn, "Zoom")
+    if zoom ~= nil then
+        for _, f in ipairs({ "MinCamDistance", "MaxCamDistance", "DefaultCamDistance",
+                             "RelativeZoomCameraPitchLimit", "RelativeZoomCameraYawLimit" }) do
+            local v = num(zoom, f)
+            if v ~= nil then o[f] = v end
+        end
+    end
+    local arm = getPart(pawn, "FollowSpringArm")
+    if arm ~= nil then
+        local a = num(arm, "TargetArmLength")
+        if a ~= nil then o.arm = a end
+    end
+    originals[key] = o
+    log(string.format("  recorded this vehicle's own values (arm=%s min=%s)",
+        tostring(o.arm), tostring(o.MinCamDistance)))
+    return o
+end
 
 local function applyOffset(pawn)
     local arm = getPart(pawn, "FollowSpringArm")
@@ -183,43 +271,30 @@ local function pinZoom(pawn, on)
     local zoom = getPart(pawn, "Zoom")
     if zoom == nil then log("  no Zoom component"); return end
     if on then
-        -- remember this vehicle's own values first, so OFF can restore
-        -- exactly those rather than figures measured on a Panzer IV
-        state.orig = state.orig or {}
-        local fields = { "MinCamDistance", "MaxCamDistance", "DefaultCamDistance",
-                         "RelativeZoomCameraPitchLimit", "RelativeZoomCameraYawLimit" }
-        for _, f in ipairs(fields) do
-            if state.orig[f] == nil then
-                local v = num(zoom, f)
-                if v ~= nil then state.orig[f] = v end
-            end
-        end
-        local arm = getPart(pawn, "FollowSpringArm")
-        if arm and state.orig.arm == nil then
-            local a = num(arm, "TargetArmLength")
-            if a ~= nil then state.orig.arm = a end
-        end
-
         pcall(function() zoom["MinCamDistance"] = 0.0 end)
         pcall(function() zoom["DefaultCamDistance"] = 0.0 end)
         pcall(function() zoom:SetCamDistanceTarget(0.0) end)
         pcall(function() zoom["RelativeZoomCameraPitchLimit"] = 85.0 end)
         pcall(function() zoom["RelativeZoomCameraYawLimit"] = 175.0 end)
-        log("  zoom pinned (originals remembered)")
+        log("  zoom pinned")
     else
-        local o = state.orig or {}
-        local function restore(field, fallback)
-            local v = o[field]
-            if v == nil then v = fallback end
-            pcall(function() zoom[field] = v end)
+        local o = originals[fullname(pawn)]
+        if o == nil then
+            log("  nothing recorded for this vehicle, leaving zoom alone")
+            return
         end
-        restore("MinCamDistance", 150.0)
-        restore("MaxCamDistance", 800.0)
-        restore("DefaultCamDistance", 500.0)
-        restore("RelativeZoomCameraPitchLimit", 20.0)
-        restore("RelativeZoomCameraYawLimit", 45.0)
-        local def = o.DefaultCamDistance or 500.0
-        pcall(function() zoom:SetCamDistanceTarget(def) end)
+        local function restore(field)
+            local v = o[field]
+            if v ~= nil then pcall(function() zoom[field] = v end) end
+        end
+        restore("MinCamDistance")
+        restore("MaxCamDistance")
+        restore("DefaultCamDistance")
+        restore("RelativeZoomCameraPitchLimit")
+        restore("RelativeZoomCameraYawLimit")
+        if o.DefaultCamDistance ~= nil then
+            pcall(function() zoom:SetCamDistanceTarget(o.DefaultCamDistance) end)
+        end
         log("  zoom restored to this vehicle's own values")
     end
 end
@@ -228,8 +303,9 @@ local function cmdrOn()
     openLog()
     log("")
     log("#### commander view ON ####")
-    local pawn = getPawn()
-    if pawn == nil then log("no pawn"); return end
+    local pawn = getVehicle()
+    if pawn == nil then log("no vehicle"); return end
+    recordOriginals(pawn)        -- BEFORE any write, or we record our own numbers
     local tank = tankName(pawn)
     local saved = profiles[tank]
     if saved then
@@ -244,22 +320,31 @@ local function cmdrOn()
     pinZoom(pawn, true)
     applyOffset(pawn)
     state.on = true
+    pinned[fullname(pawn)] = true
+    lastPinned = pawn
 end
 
-local function cmdrOff()
+local function cmdrOff(target)
     openLog()
     log("#### commander view OFF ####")
-    local pawn = getPawn()
+    local pawn = target or getVehicle()
     if pawn == nil then return end
+    local key = fullname(pawn)
+    local o = originals[key]
+    if o == nil then
+        log("  nothing was changed on this vehicle, leaving it alone")
+        state.on = false
+        return
+    end
     local arm = getPart(pawn, "FollowSpringArm")
     if arm then
         pcall(function() arm["SocketOffset"] = { X = 0.0, Y = 0.0, Z = 0.0 } end)
-        local armLen = (state.orig and state.orig.arm) or 500.0
-        pcall(function() arm["TargetArmLength"] = armLen end)
+        if o.arm ~= nil then pcall(function() arm["TargetArmLength"] = o.arm end) end
     end
     pinZoom(pawn, false)
+    pinned[key] = nil
     state.on = false
-    state.orig = nil
+    if lastPinned == pawn then lastPinned = nil end
 end
 
 local function toggle()
@@ -268,7 +353,7 @@ end
 
 local function nudge(axis, delta)
     openLog()
-    local pawn = getPawn()
+    local pawn = getVehicle()
     if pawn == nil then log("no pawn"); return end
     state.off[axis] = (state.off[axis] or 0) + delta
     log(string.format("nudge %s %+.0f  offset (%.0f, %.0f, %.0f)", axis, delta,
@@ -278,7 +363,7 @@ end
 
 local function resetOffset()
     openLog()
-    local pawn = getPawn()
+    local pawn = getVehicle()
     if pawn == nil then return end
     state.off = { x = 0, y = 0, z = 0 }
     log("offset reset")
@@ -287,7 +372,7 @@ end
 
 local function saveTank()
     openLog()
-    local pawn = getPawn()
+    local pawn = getVehicle()
     if pawn == nil then log("no pawn"); return end
     local tank = tankName(pawn)
     profiles[tank] = { x = state.off.x, y = state.off.y, z = state.off.z }
@@ -300,7 +385,7 @@ local function report()
     openLog()
     log("")
     log("#### report ####")
-    local pawn = getPawn()
+    local pawn = getVehicle()
     if pawn == nil then log("no pawn"); return end
     log("tank = " .. tankName(pawn))
     log("offset = " .. string.format("%.1f, %.1f, %.1f", state.off.x, state.off.y, state.off.z))
@@ -325,10 +410,18 @@ end
 
 -- ---------- apply automatically when getting into a known vehicle ----------
 local function autoApply()
-    -- a new vehicle means the old view state is meaningless
+    -- hand the vehicle we left its own values back first
+    if lastPinned ~= nil then
+        local stillThere = false
+        pcall(function() stillThere = lastPinned:IsValid() end)
+        if stillThere then
+            log("restoring the vehicle we left")
+            cmdrOff(lastPinned)
+        end
+        lastPinned = nil
+    end
     state.on = false
-    state.orig = nil
-    local pawn = getPawn()
+    local pawn = getVehicle()
     if pawn == nil then return end
     if profiles[tankName(pawn)] == nil then return end
     openLog()
@@ -395,4 +488,4 @@ bind(Key.NUM_THREE, ALT, function() nudge("z", -STEP) end, "alt+num3")
 bind(Key.NUM_FIVE, ALT, resetOffset, "alt+num5")
 bind(Key.NUM_ZERO, ALT, saveTank, "alt+num0")
 
-print("[CtACmdr] v1.3 loaded. F3=commander view F4=normal ALT+NUM=move ALT+NUM0=save F6=report")
+print("[CtACmdr] v1.5 loaded. F3=commander view F4=normal ALT+NUM=move ALT+NUM0=save F6=report")
