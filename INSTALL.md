@@ -35,6 +35,23 @@ Everything we install goes in here, next to that exe.
 
 ---
 
+## Shortcut - let the repo do steps 2 to 5
+
+If you are comfortable running a PowerShell script, this does everything:
+
+    powershell -ExecutionPolicy Bypass -File tools\setup.ps1
+
+It downloads UE4SS from its official release, puts it next to the game
+exe, installs the mod, and leaves any camera positions you already have
+alone. It stops and tells you what is wrong if the game is not where it
+expects. Safe to re-run.
+
+Add `-QuietDumps` to also switch off UE4SS's 33 MB crash dumps, or
+`-GameRoot "D:\path" ` if the game lives somewhere else.
+
+The rest of this page is the manual version, which is worth reading once
+so you know what the script did.
+
 ## Step 2 - Download UE4SS
 
 UE4SS is the mod loader. It is what lets a Lua script talk to the game.
