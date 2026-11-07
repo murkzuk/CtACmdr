@@ -71,7 +71,12 @@ loads it whether or not `mods.txt` mentions it.
 
 ## Uninstall
 
-Delete `Mods\CtACmdr` and the `CtACmdr : 1` line in `mods.txt`.
+Delete the `Mods\CtACmdr` folder.
+
+**To switch it off without deleting**, remove or rename
+`Mods\CtACmdr\enabled.txt`. That file tells UE4SS to load the mod no
+matter what `mods.txt` says, so `CtACmdr : 0` on its own will **not**
+disable it.
 
 Nothing is written into the game's .pak files. Nothing touches your saves.
 

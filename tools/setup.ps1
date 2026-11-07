@@ -16,6 +16,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Windows PowerShell 5.1 can default to old TLS, which GitHub refuses
+try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch { }
+
+# SHA256 of UE4SS_v3.0.1.zip as published on the official release. The zip
+# contains a DLL that loads into the game, so it is worth not trusting the
+# network blindly.
+$UE4SS_SHA256 = "4B47D4BCEDDD2F561A4E395BFA00924CCFC945AF576A2D0C613E6537846C57EC"
+
 $bin = Join-Path $GameRoot "call_to_arms_pe\Binaries\Win64"
 $exe = Join-Path $bin "call_to_arms_pe-Win64-Shipping.exe"
 
@@ -34,8 +42,7 @@ if ($haveUE4SS -and (-not $Force)) {
     Write-Host "UE4SS is already installed, leaving it alone (use -Force to replace it)"
 } else {
     $url = "https://github.com/UE4SS-RE/RE-UE4SS/releases/download/v" + $UE4SSVersion + "/UE4SS_v" + $UE4SSVersion + ".zip"
-    $tmp = Join-Path $env:TEMP ("ue4ss_" + $UE4SSVersion)
-    if (Test-Path -LiteralPath $tmp) { Remove-Item -LiteralPath $tmp -Recurse -Force }
+    $tmp = Join-Path $env:TEMP ("ue4ss_" + [guid]::NewGuid().ToString("N").Substring(0, 8))
     New-Item -ItemType Directory -Force -Path $tmp | Out-Null
     $zip = Join-Path $tmp "ue4ss.zip"
 
@@ -48,16 +55,50 @@ if ($haveUE4SS -and (-not $Force)) {
     $sizeMb = [math]::Round((Get-Item $zip).Length / 1MB, 1)
     Write-Host ("Downloaded " + $sizeMb + " MB")
 
+    $actual = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash
+    if ($UE4SS_SHA256 -and ($actual -ne $UE4SS_SHA256)) {
+        Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
+        throw ("UE4SS checksum mismatch, refusing to install it." +
+               [Environment]::NewLine +
+               "  expected " + $UE4SS_SHA256 +
+               [Environment]::NewLine +
+               "  got      " + $actual +
+               [Environment]::NewLine +
+               "Download it by hand from " + $url + " and check it yourself.")
+    }
+    Write-Host "Checksum verified"
+
     Expand-Archive -LiteralPath $zip -DestinationPath $tmp -Force
 
-    foreach ($f in @("UE4SS.dll", "dwmapi.dll", "UE4SS-settings.ini")) {
+    foreach ($f in @("UE4SS.dll", "dwmapi.dll")) {
         $src = Join-Path $tmp $f
         if (-not (Test-Path -LiteralPath $src)) { throw ("The UE4SS zip did not contain " + $f) }
         Copy-Item -LiteralPath $src -Destination $bin -Force
     }
+
+    # Settings and existing mods belong to the user. Only add what is missing,
+    # never overwrite: -Force is meant to replace the DLLs, not reset their setup.
+    $iniSrc = Join-Path $tmp "UE4SS-settings.ini"
+    $iniDst = Join-Path $bin "UE4SS-settings.ini"
+    if ((Test-Path -LiteralPath $iniSrc) -and (-not (Test-Path -LiteralPath $iniDst))) {
+        Copy-Item -LiteralPath $iniSrc -Destination $iniDst -Force
+        Write-Host "Installed a default UE4SS-settings.ini (none existed)"
+    } elseif (Test-Path -LiteralPath $iniDst) {
+        Write-Host "Kept your existing UE4SS-settings.ini"
+    }
+
     $modsSrc = Join-Path $tmp "Mods"
+    $modsDst = Join-Path $bin "Mods"
     if (Test-Path -LiteralPath $modsSrc) {
-        Copy-Item -Path (Join-Path $modsSrc "*") -Destination (Join-Path $bin "Mods") -Recurse -Force -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory -Force -Path $modsDst | Out-Null
+        foreach ($item in (Get-ChildItem -LiteralPath $modsSrc)) {
+            $target = Join-Path $modsDst $item.Name
+            if (Test-Path -LiteralPath $target) {
+                Write-Host ("Kept your existing " + $item.Name)
+            } else {
+                Copy-Item -LiteralPath $item.FullName -Destination $target -Recurse -Force
+            }
+        }
     }
     # The official zip does not contain a LICENSE file at its root, so there
     # is nothing to copy. We download from the project rather than

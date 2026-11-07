@@ -1,4 +1,4 @@
--- CtACmdr v1.5 : commander view for Call to Arms: Panzer Elite
+-- CtACmdr v1.8 : commander view for Call to Arms: Panzer Elite
 -- MIT licensed, (c) 2026 murkz. See LICENSE.
 --
 --   F3            commander view on / off
@@ -320,6 +320,7 @@ local function cmdrOn()
     pinZoom(pawn, true)
     applyOffset(pawn)
     state.on = true
+    state.tank = tank
     pinned[fullname(pawn)] = true
     lastPinned = pawn
 end
@@ -353,6 +354,10 @@ end
 
 local function nudge(axis, delta)
     openLog()
+    if not state.on then
+        log("commander view is off - press F3 first, nudging now would move the normal camera")
+        return
+    end
     local pawn = getVehicle()
     if pawn == nil then log("no pawn"); return end
     state.off[axis] = (state.off[axis] or 0) + delta
@@ -375,6 +380,11 @@ local function saveTank()
     local pawn = getVehicle()
     if pawn == nil then log("no pawn"); return end
     local tank = tankName(pawn)
+    if state.tank ~= nil and state.tank ~= tank then
+        log("this position was tuned in " .. tostring(state.tank) ..
+            ", not in " .. tank .. " - press F3 here first, then save")
+        return
+    end
     profiles[tank] = { x = state.off.x, y = state.off.y, z = state.off.z }
     local okW = saveProfiles()
     log(string.format("SAVED %s = (%.1f, %.1f, %.1f) file=%s", tank,
@@ -477,15 +487,22 @@ bind(Key.F3, nil, toggle, "F3")
 bind(Key.F4, nil, cmdrOff, "F4")
 bind(Key.F6, nil, report, "F6")
 local ALT = { ModifierKey.ALT }
-if ModifierKey.ALT == nil then print("[CtACmdr] WARNING: ModifierKey.ALT missing, camera keys will not work") end
+local haveALT = (ModifierKey.ALT ~= nil)
+if not haveALT then
+    openLog()
+    log("[ERROR] this UE4SS build has no ModifierKey.ALT, so the camera move keys cannot be bound.")
+    log("        F3 and F4 still work. Report it and a plain-key fallback can be added.")
+end
 
-bind(Key.NUM_EIGHT, ALT, function() nudge("x", STEP) end, "alt+num8")
-bind(Key.NUM_TWO, ALT, function() nudge("x", -STEP) end, "alt+num2")
-bind(Key.NUM_FOUR, ALT, function() nudge("y", -STEP) end, "alt+num4")
-bind(Key.NUM_SIX, ALT, function() nudge("y", STEP) end, "alt+num6")
-bind(Key.NUM_NINE, ALT, function() nudge("z", STEP) end, "alt+num9")
-bind(Key.NUM_THREE, ALT, function() nudge("z", -STEP) end, "alt+num3")
-bind(Key.NUM_FIVE, ALT, resetOffset, "alt+num5")
-bind(Key.NUM_ZERO, ALT, saveTank, "alt+num0")
+if haveALT then
+    bind(Key.NUM_EIGHT, ALT, function() nudge("x", STEP) end, "alt+num8")
+    bind(Key.NUM_TWO, ALT, function() nudge("x", -STEP) end, "alt+num2")
+    bind(Key.NUM_FOUR, ALT, function() nudge("y", -STEP) end, "alt+num4")
+    bind(Key.NUM_SIX, ALT, function() nudge("y", STEP) end, "alt+num6")
+    bind(Key.NUM_NINE, ALT, function() nudge("z", STEP) end, "alt+num9")
+    bind(Key.NUM_THREE, ALT, function() nudge("z", -STEP) end, "alt+num3")
+    bind(Key.NUM_FIVE, ALT, resetOffset, "alt+num5")
+    bind(Key.NUM_ZERO, ALT, saveTank, "alt+num0")
+end
 
-print("[CtACmdr] v1.5 loaded. F3=commander view F4=normal ALT+NUM=move ALT+NUM0=save F6=report")
+print("[CtACmdr] v1.8 loaded. F3=commander view F4=normal ALT+NUM=move ALT+NUM0=save F6=report")

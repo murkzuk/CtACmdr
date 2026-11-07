@@ -186,8 +186,12 @@ One line per tank. The binoculars keep working normally from this view.
 
 **Just the mod:**
 
-1. Delete `Binaries\Win64\Mods\CtACmdr`
-2. Delete the `CtACmdr : 1` line in `mods.txt`
+Delete `Binaries\Win64\Mods\CtACmdr`
+
+**To switch it off but keep it installed**, rename or delete
+`Mods\CtACmdr\enabled.txt`. That file makes UE4SS load the mod whatever
+`mods.txt` says - it is what makes copying the folder enough - so setting
+`CtACmdr : 0` does **not** disable it on its own.
 
 **UE4SS as well:**
 

@@ -99,8 +99,9 @@ The human specified the goal and ran every in-game test.
 
 - Singleplayer only.
 - Never write into the .pak. Everything is loose files.
-- Every mod keeps a kill switch: delete the folder, set the line in
-  `mods.txt` to 0.
+- Every mod keeps a kill switch: delete the folder, or remove
+  `CtACmdr\enabled.txt`. Setting the line in `mods.txt` to 0 is **not**
+  enough once enabled.txt is present - that file overrides mods.txt.
 
 ## The grander plan - PARKED, see docs/dead-ends.md
 
