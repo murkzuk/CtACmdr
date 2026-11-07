@@ -121,12 +121,16 @@ with the copy from the repo.
 
 1. Copy the `CtACmdr` folder from this repo into
    `Binaries\Win64\Mods\`
-2. Open `Binaries\Win64\Mods\mods.txt` in Notepad.
-3. Add this line at the bottom:
 
-       CtACmdr : 1
+That is all. The folder contains an `enabled.txt`, which tells UE4SS to
+load it no matter what `mods.txt` says.
 
-The `1` means on. A `0` means off.
+If you prefer the old way, adding this line to `Mods\mods.txt` also
+works:
+
+    CtACmdr : 1
+
+The `1` means on, a `0` means off.
 
 ---
 

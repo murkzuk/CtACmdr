@@ -51,6 +51,7 @@ if (-not (Test-Path -LiteralPath $modsDir)) {
 
 Copy-Item -LiteralPath $source -Destination $modsDir -Recurse -Force
 Write-Host ("Copied the mod to " + $modsDir + "\CtACmdr")
+Write-Host "The mod folder contains enabled.txt, so UE4SS loads it even without a mods.txt line"
 
 # Only place the repo's positions if there are none yet. Overwriting would
 # throw away every tank the user tuned in game.

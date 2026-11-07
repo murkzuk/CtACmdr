@@ -52,13 +52,11 @@ The short version, if you already have UE4SS:
 
     powershell -ExecutionPolicy Bypass -File tools\install.ps1
 
-Or by hand:
+Or by hand: copy the `CtACmdr` folder into
+`Call To Arms - Panzer Elite\call_to_arms_pe\Binaries\Win64\Mods\`
 
-1. Copy the `CtACmdr` folder into
-   `Call To Arms - Panzer Elite\call_to_arms_pe\Binaries\Win64\Mods\`
-2. Add this line to `Mods\mods.txt`:
-
-       CtACmdr : 1
+That is the whole install. The folder carries an `enabled.txt`, so UE4SS
+loads it whether or not `mods.txt` mentions it.
 
 The game needs UE4SS installed. This install already has it.
 
