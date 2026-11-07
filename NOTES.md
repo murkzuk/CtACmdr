@@ -165,3 +165,26 @@ Crew state looks replicated. `BinocularsComponent` has
 `OnRep_BinocularsState` style handlers. In singleplayer the local player
 is the server, so it should hold. In multiplayer it will fight the
 server and probably snap back. Singleplayer only, as with the rest.
+
+## In-game verification of v1.5.0
+
+Run on 07/11/2026, PzKpfw IV Ausf G, session 05:00 to 05:02. Read from
+`CtACmdr.log` and the saved files afterwards.
+
+| Fix | Tested | Evidence |
+| --- | --- | --- |
+| A - record originals before writing | **yes** | `recorded this vehicle's own values (arm=600.0 min=150.0)` - the real arm length, not the 0 written afterwards |
+| A - F4 restores the real arm length | **yes** | `zoom restored to this vehicle's own values`; camera returned to the third person view instead of staying inside |
+| B - originals kept per vehicle, not re-recorded | **yes** | second F3 produced no `recorded` line |
+| C - save writes temp, keeps .bak, swaps | **yes** | `SAVED ... file=true`; `CtACmdr_views.txt` held the new value, `CtACmdr_views.txt.bak` held the previous one, no `.tmp` left behind |
+| D - F4 restores recorded values rather than fallbacks | **yes** | OFF restored 600.0 / 150.0, never the Panzer IV fallbacks |
+| D - F4 does nothing on an untouched vehicle | **no** | the possession hook auto-applied on getting in, so no untouched vehicle ever existed to press F4 on |
+| D - restore the vehicle you left | **no** | needs two vehicles; the test mission had one |
+| E - IsA vehicle guard | **yes, partly** | no `[WARN] could not check the pawn class` line, so the IsA call worked and allowed a real vehicle |
+| E - non-vehicle pawn is refused | **unreachable** | there is no dismount in this game, so the path cannot be exercised. The guard is belt and braces |
+
+### What this means
+
+The two untested branches are not exotic, but they are also not
+load-bearing for normal play. Switching vehicles in one session, and
+being on foot, do not happen in the campaign as tested.
