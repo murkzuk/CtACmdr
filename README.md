@@ -45,20 +45,29 @@ vehicle that has a saved position.
 
 ## Install
 
-**Full walkthrough, including installing UE4SS from scratch:**
-**[INSTALL.md](INSTALL.md)**
+**One command.** From a copy of this repo:
 
-The short version, if you already have UE4SS:
+    powershell -ExecutionPolicy Bypass -File tools\setup.ps1
+
+That downloads UE4SS, puts it next to the game exe, and installs the mod.
+Re-running it will not touch camera positions you tuned in game.
+
+    -GameRoot "D:\path"   if the game is not in the default place
+    -QuietDumps           also switch off UE4SS's 33 MB crash dumps
+    -Force                re-download UE4SS even if it is present
+
+**Full walkthrough, including doing UE4SS by hand:** [INSTALL.md](INSTALL.md)
+
+**Already have UE4SS?** Then just the mod:
 
     powershell -ExecutionPolicy Bypass -File tools\install.ps1
 
-Or by hand: copy the `CtACmdr` folder into
-`Call To Arms - Panzer Elite\call_to_arms_pe\Binaries\Win64\Mods\`
+**By hand:** copy the `CtACmdr` folder into
+
+    ...\call_to_arms_pe\Binaries\Win64\Mods\
 
 That is the whole install. The folder carries an `enabled.txt`, so UE4SS
 loads it whether or not `mods.txt` mentions it.
-
-The game needs UE4SS installed. This install already has it.
 
 ## Uninstall
 
