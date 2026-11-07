@@ -213,3 +213,29 @@ tampered with upstream. UE4SS publishes no signatures.
 replaced. If the checksum ever stops matching, setup refuses to install -
 that is the pin doing its job, not a bug. The answer is to check the new
 digest on GitHub and update the constant.
+
+## First user outside this machine
+
+`Veteran66` got it working on 07/11/2026 and posted a screenshot of the
+commander view from a moving tank. His first attempt failed for a reason
+worth remembering: he installed the **v3.0.1 UE4SS release build**, which
+fails its signature scan on this game (`Failed to find FText::FText`), so
+no Lua mod loaded at all. The experimental build works. That is now what
+the installer and the one-zip download ship.
+
+He also reported the layout trap: the new UE4SS puts `Mods` inside
+`ue4ss\\`, not next to the exe.
+
+## How it is actually being used
+
+The owner plays it as **F3 for the commander view, hold SHIFT for the
+game's own gunsight, release to come back**. Two positions, one key each,
+and the mod never has to know anything about the gunsight.
+
+That is the practical version of the original request - "a proper
+commander view to drive and look about with, then a bino view". It is not
+a true simulation of a commander's head, but it is closer than the single
+fixed external camera the game ships with.
+
+Worth writing down because it is not obvious from the keys table: the
+gunsight is the game's, not ours.

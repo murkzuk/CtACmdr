@@ -34,9 +34,19 @@ position for each tank.
 | ALT + NUM 0 | Save this tank's position |
 | F6 | Write a report to CtACmdr.log |
 
-ALT because plain numpad navigates between units in skirmish mode.
-ALT rather than CTRL because UE4SS binds CTRL+NUM 6..9 to debug file
-dumps.
+### The way most people actually use it
+
+**F3 gives you the commander view. Hold SHIFT for the game's own gunsight,
+let go and you are back at the commander's head.**
+
+That is a two-position commander: head up to look around and drive, down
+into the sight when you need to shoot, and it does not depend on this mod
+knowing anything about the gunsight. It is not a true simulation, but it
+is a lot closer than one fixed position.
+
+ALT for the camera keys because plain numpad navigates between units in
+skirmish mode, and CTRL+NUM 6..9 is used by UE4SS for debug file dumps.
+SHIFT is deliberately left alone: it is the gunsight.
 
 Each numpad press moves the camera 5 cm. Hold or tap to creep.
 
