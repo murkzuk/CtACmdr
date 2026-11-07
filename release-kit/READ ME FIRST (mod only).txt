@@ -1,0 +1,39 @@
+CtACmdr {VERSION} - MOD ONLY zip
+================================
+
+For people who ALREADY have UE4SS working in Call to Arms: Panzer Elite.
+If you do not have UE4SS, use the other zip (the one that says Windows).
+
+Your UE4SS must be a build that works on this game (UE 5.4). The normal
+UE4SS v3.0.1 release does NOT: it fails its signature scan and loads no
+mods. The mod's README says which build to use.
+
+INSTALL
+-------
+1. Close the game.
+2. Open your UE4SS Mods folder. It is one of these, inside
+   call_to_arms_pe\Binaries\Win64 :
+       ue4ss\Mods     (newer UE4SS builds)
+       Mods           (older UE4SS builds)
+3. Copy the  CtACmdr  folder from this zip into it.
+   You should end up with:   ...\Mods\CtACmdr\Scripts\main.lua
+                             ...\Mods\CtACmdr\enabled.txt
+4. Start the game. Get in a tank. Press F3.
+
+The enabled.txt inside the folder makes UE4SS load the mod, so you do not
+need to edit mods.txt.
+
+KEYS
+----
+  F3 commander view on/off      F4 back to normal view
+  ALT+NUM 8/2 forward/back      ALT+NUM 4/6 left/right
+  ALT+NUM 9/3 up/down           ALT+NUM 5 reset
+  ALT+NUM 0 save this tank      F6 write a report to CtACmdr.log
+
+REMOVE IT
+---------
+Delete the CtACmdr folder. To switch it off but keep it, delete
+CtACmdr\enabled.txt (setting it to 0 in mods.txt is NOT enough).
+
+Singleplayer only.
+More: https://github.com/murkzuk/CtACmdr

@@ -3,3 +3,6 @@
 *.dmp
 crash_*.dmp
 CtACmdr.log
+
+# release zips are built by tools\build-release.ps1 and uploaded to GitHub Releases
+release/

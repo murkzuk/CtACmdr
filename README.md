@@ -45,36 +45,59 @@ vehicle that has a saved position.
 
 ## Install
 
-**One command.** From a copy of this repo:
+**You do not need git, PowerShell or any other download.** One zip has
+everything.
 
-    powershell -ExecutionPolicy Bypass -File tools\setup.ps1
+1. Go to the **[latest release](https://github.com/murkzuk/CtACmdr/releases/latest)**
+   and download **`CtACmdr-v…-Windows.zip`** (under *Assets*).
+2. **Close the game.**
+3. In Steam: right-click the game, **Manage**, **Browse local files**, then open
+   `call_to_arms_pe` > `Binaries` > `Win64`. That is the folder holding
+   `call_to_arms_pe-Win64-Shipping.exe`.
+4. **Extract the whole zip into that `Win64` folder.**
+   Next to the exe you should now see `dwmapi.dll` and a `ue4ss` folder.
+5. Start the game. **The first start sits on a black screen for up to a
+   minute. That is normal.**
+6. Get into a tank and press **F3**.
 
-That downloads UE4SS, puts it next to the game exe, and installs the mod.
-Re-running it will not touch camera positions you tuned in game.
+The zip also contains a `READ ME FIRST.txt` with the same steps.
 
-    -GameRoot "D:\path"   if the game is not in the default place
-    -QuietDumps           also switch off UE4SS's 33 MB crash dumps
-    -Force                re-download UE4SS even if it is present
+**Antivirus:** `dwmapi.dll` is how UE4SS loads into the game. It pretends to be
+a Windows file, so some antivirus programs remove it. If the mod does
+nothing, check your protection history, allow that file, and extract again.
 
-**Full walkthrough, including doing UE4SS by hand:** [INSTALL.md](INSTALL.md)
+**Already use UE4SS mods?** Do not use the Windows zip, it would replace your
+UE4SS files and settings. Download **`CtACmdr-v…-mod-only.zip`** instead and
+copy its `CtACmdr` folder into your UE4SS `Mods` folder (`Win64\ue4ss\Mods`,
+or `Win64\Mods` on older builds). The normal UE4SS v3.0.1 release does **not**
+work on this game (it fails its signature scan and loads no mods), so use the
+build named in [INSTALL.md](INSTALL.md).
 
-**Already have UE4SS?** Then just the mod:
+**Check your download (optional):** the release notes list a SHA256 for each
+zip. In PowerShell: `Get-FileHash .\CtACmdr-v…-Windows.zip`
 
-    powershell -ExecutionPolicy Bypass -File tools\install.ps1
+### Other ways to install
 
-**By hand:** copy the `CtACmdr` folder into
+- **Full walkthrough, doing UE4SS by hand:** [INSTALL.md](INSTALL.md)
+- **One command, from a copy of this repo:**
+  `powershell -ExecutionPolicy Bypass -File tools\setup.ps1`
+  (downloads UE4SS, then installs the mod; add `-GameRoot "D:\path"` if the
+  game is not on the default path)
+- **Mod only, from a copy of this repo:**
+  `powershell -ExecutionPolicy Bypass -File tools\install.ps1`
 
-    ...\call_to_arms_pe\Binaries\Win64\Mods\
-
-That is the whole install. The folder carries an `enabled.txt`, so UE4SS
-loads it whether or not `mods.txt` mentions it.
+The `CtACmdr` folder carries an `enabled.txt`, so UE4SS loads it whether or not
+`mods.txt` mentions it.
 
 ## Uninstall
 
-Delete the `Mods\CtACmdr` folder.
+- **Just the mod:** delete `Win64\ue4ss\Mods\CtACmdr`
+  (`Win64\Mods\CtACmdr` on an older UE4SS).
+- **Everything the zip added:** delete `Win64\dwmapi.dll` and the
+  `Win64\ue4ss` folder.
 
 **To switch it off without deleting**, remove or rename
-`Mods\CtACmdr\enabled.txt`. That file tells UE4SS to load the mod no
+`CtACmdr\enabled.txt`. That file tells UE4SS to load the mod no
 matter what `mods.txt` says, so `CtACmdr : 0` on its own will **not**
 disable it.
 
