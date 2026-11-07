@@ -32,11 +32,11 @@ position for each tank.
 | ALT + NUM 9 / 3 | Up / down |
 | ALT + NUM 5 | Reset the offset to zero |
 | ALT + NUM 0 | Save this tank's position |
+| F6 | Write a report to CtACmdr.log |
 
 ALT because plain numpad navigates between units in skirmish mode.
 ALT rather than CTRL because UE4SS binds CTRL+NUM 6..9 to debug file
 dumps.
-| F6 | Write a report to CtACmdr.log |
 
 Each numpad press moves the camera 5 cm. Hold or tap to creep.
 

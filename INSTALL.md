@@ -113,6 +113,10 @@ If your game is not on `L:\`, add the path:
 
     powershell -ExecutionPolicy Bypass -File tools\install.ps1 -GameRoot "D:\Games\Call To Arms - Panzer Elite"
 
+Re-running the installer will not overwrite camera positions you have
+tuned in game. Add `-RestoreViews` if you actually want to replace them
+with the copy from the repo.
+
 ### Manual way
 
 1. Copy the `CtACmdr` folder from this repo into

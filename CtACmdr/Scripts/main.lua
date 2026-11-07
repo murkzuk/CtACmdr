@@ -1,4 +1,4 @@
--- CtACmdr v1.1 : commander view for Call to Arms: Panzer Elite
+-- CtACmdr v1.3 : commander view for Call to Arms: Panzer Elite
 -- MIT licensed, (c) 2026 murkz. See LICENSE.
 --
 --   F3            commander view on / off
@@ -55,10 +55,16 @@ local function loadProfiles()
     pcall(function() h:close() end)
 end
 
+-- Write to a temp file first, then swap it in. Truncating the real file
+-- before writing would lose every saved tank if the game died mid-write.
 local function saveProfiles()
-    local ok, h = pcall(io.open, SAVE, "w")
-    if not ok or not h then return false end
-    pcall(function()
+    local tmp = SAVE .. ".tmp"
+    local bak = SAVE .. ".bak"
+
+    local okOpen, h = pcall(io.open, tmp, "w")
+    if not okOpen or not h then return false end
+
+    local okWrite = pcall(function()
         h:write("# CtACmdr per-tank camera offsets: class x y z\n")
         for name, p in pairs(profiles) do
             h:write(string.format("%s %.2f %.2f %.2f\n", name, p.x or 0, p.y or 0, p.z or 0))
@@ -66,6 +72,20 @@ local function saveProfiles()
         h:flush()
         h:close()
     end)
+    if not okWrite then
+        pcall(function() h:close() end)
+        pcall(function() os.remove(tmp) end)
+        return false
+    end
+
+    -- keep the previous good file as a backup
+    pcall(function() os.remove(bak) end)
+    pcall(function() os.rename(SAVE, bak) end)
+
+    if not pcall(function() return os.rename(tmp, SAVE) end) then
+        pcall(function() os.remove(tmp) end)
+        return false
+    end
     return true
 end
 
@@ -116,7 +136,13 @@ local function getPawn()
         if valid and not string.find(fullname(p), "Default__", 1, true) then
             local temp = nil
             pcall(function() temp = p["Pawn"] end)
-            if isObj(temp) then return temp end
+            if isObj(temp) then
+                -- a stale or null pawn would be read further down, and a
+                -- null object read is fatal on this build
+                local pv = false
+                pcall(function() pv = temp:IsValid() end)
+                if pv then return temp end
+            end
         end
     end
     return nil
@@ -157,20 +183,44 @@ local function pinZoom(pawn, on)
     local zoom = getPart(pawn, "Zoom")
     if zoom == nil then log("  no Zoom component"); return end
     if on then
+        -- remember this vehicle's own values first, so OFF can restore
+        -- exactly those rather than figures measured on a Panzer IV
+        state.orig = state.orig or {}
+        local fields = { "MinCamDistance", "MaxCamDistance", "DefaultCamDistance",
+                         "RelativeZoomCameraPitchLimit", "RelativeZoomCameraYawLimit" }
+        for _, f in ipairs(fields) do
+            if state.orig[f] == nil then
+                local v = num(zoom, f)
+                if v ~= nil then state.orig[f] = v end
+            end
+        end
+        local arm = getPart(pawn, "FollowSpringArm")
+        if arm and state.orig.arm == nil then
+            local a = num(arm, "TargetArmLength")
+            if a ~= nil then state.orig.arm = a end
+        end
+
         pcall(function() zoom["MinCamDistance"] = 0.0 end)
         pcall(function() zoom["DefaultCamDistance"] = 0.0 end)
         pcall(function() zoom:SetCamDistanceTarget(0.0) end)
         pcall(function() zoom["RelativeZoomCameraPitchLimit"] = 85.0 end)
         pcall(function() zoom["RelativeZoomCameraYawLimit"] = 175.0 end)
-        log("  zoom pinned")
+        log("  zoom pinned (originals remembered)")
     else
-        pcall(function() zoom["MinCamDistance"] = 150.0 end)
-        pcall(function() zoom["MaxCamDistance"] = 800.0 end)
-        pcall(function() zoom["DefaultCamDistance"] = 500.0 end)
-        pcall(function() zoom:SetCamDistanceTarget(500.0) end)
-        pcall(function() zoom["RelativeZoomCameraPitchLimit"] = 20.0 end)
-        pcall(function() zoom["RelativeZoomCameraYawLimit"] = 45.0 end)
-        log("  zoom restored")
+        local o = state.orig or {}
+        local function restore(field, fallback)
+            local v = o[field]
+            if v == nil then v = fallback end
+            pcall(function() zoom[field] = v end)
+        end
+        restore("MinCamDistance", 150.0)
+        restore("MaxCamDistance", 800.0)
+        restore("DefaultCamDistance", 500.0)
+        restore("RelativeZoomCameraPitchLimit", 20.0)
+        restore("RelativeZoomCameraYawLimit", 45.0)
+        local def = o.DefaultCamDistance or 500.0
+        pcall(function() zoom:SetCamDistanceTarget(def) end)
+        log("  zoom restored to this vehicle's own values")
     end
 end
 
@@ -204,10 +254,12 @@ local function cmdrOff()
     local arm = getPart(pawn, "FollowSpringArm")
     if arm then
         pcall(function() arm["SocketOffset"] = { X = 0.0, Y = 0.0, Z = 0.0 } end)
-        pcall(function() arm["TargetArmLength"] = 500.0 end)
+        local armLen = (state.orig and state.orig.arm) or 500.0
+        pcall(function() arm["TargetArmLength"] = armLen end)
     end
     pinZoom(pawn, false)
     state.on = false
+    state.orig = nil
 end
 
 local function toggle()
@@ -273,6 +325,9 @@ end
 
 -- ---------- apply automatically when getting into a known vehicle ----------
 local function autoApply()
+    -- a new vehicle means the old view state is meaningless
+    state.on = false
+    state.orig = nil
     local pawn = getPawn()
     if pawn == nil then return end
     if profiles[tankName(pawn)] == nil then return end
@@ -305,14 +360,22 @@ local function bind(key, mods, fn, label)
             log("[ERROR] " .. tostring(label) .. ": " .. tostring(err))
         end
     end
-    local ok = pcall(function()
-        if mods and RegisterKeyBindAsync then
+    local ok, err = pcall(function()
+        if mods then
+            -- never fall back to a bare bind: plain numpad also drives unit
+            -- selection in skirmish, so a missing modifier is worse than no key
+            if RegisterKeyBindAsync == nil then
+                error("RegisterKeyBindAsync missing, cannot bind a modified key", 0)
+            end
             RegisterKeyBindAsync(key, mods, guarded)
         else
             RegisterKeyBind(key, guarded)
         end
     end)
-    if not ok then print("[CtACmdr] could not bind " .. tostring(label)) end
+    if not ok then
+        openLog()
+        log("[ERROR] could not bind " .. tostring(label) .. ": " .. tostring(err))
+    end
 end
 
 loadProfiles()
