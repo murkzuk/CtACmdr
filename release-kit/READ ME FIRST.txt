@@ -1,89 +1,171 @@
-CtACmdr {VERSION} - commander view for Call to Arms: Panzer Elite
-=================================================================
+CtACmdr {VERSION}
+Commander view for Call to Arms: Panzer Elite
 
-This zip has everything in it. No other downloads, no scripts.
-
-INSTALL (about 1 minute)
-------------------------
-1. CLOSE THE GAME.
-
-2. In Steam: right-click the game > Manage > Browse local files.
-
-3. Open:  call_to_arms_pe  >  Binaries  >  Win64
-   This is the folder that holds  call_to_arms_pe-Win64-Shipping.exe
-
-4. Extract this WHOLE zip into that Win64 folder.
-   (Right-click the zip > Extract All, and type or paste the Win64 folder
-   path. Or open the zip and drag everything across.)
-
-   When you are done, next to the exe you should see:
-       dwmapi.dll
-       ue4ss         (a folder)
-       READ ME FIRST.txt
-
-5. Start the game.
-   The first start sits on a BLACK SCREEN for up to a minute.
-   That is normal for this game. Wait.
-
-6. Get into a tank and press F3.
+This zip has everything in it.
+No other downloads. No scripts.
 
 
-KEYS
-----
+=====================================================
+  THE ONE THING THAT GOES WRONG
+=====================================================
+
+  The files must go INTO the folder called:
+
+        Win64
+
+  Its path ends like this:
+
+        ...\call_to_arms_pe\Binaries\Win64
+
+  It is the folder that holds this file:
+
+        call_to_arms_pe-Win64-Shipping.exe
+
+
+  What goes into Win64 is the CONTENTS of the zip:
+  the files and folders that are INSIDE it.
+
+  NOT the .zip file itself.
+  Do not copy the .zip into Win64.
+
+  DO NOT let Windows make a new folder.
+
+  "Extract All" offers a new folder named after the zip.
+  DO NOT USE IT. Nothing will work.
+
+
+=====================================================
+  EASIEST WAY: DRAG AND DROP
+=====================================================
+
+  1. CLOSE THE GAME.
+
+  2. Open Steam.
+     Right-click the game.
+     Manage  >  Browse local files.
+
+  3. Open these folders, one after the other:
+
+        call_to_arms_pe
+        Binaries
+        Win64
+
+     You are now inside Win64.
+     You can see call_to_arms_pe-Win64-Shipping.exe.
+
+  4. Double-click this zip to OPEN it, in a SECOND window.
+     You see the CONTENTS: dwmapi.dll, a ue4ss folder, and this file.
+
+  5. Select the CONTENTS (Ctrl + A inside the open zip).
+
+  6. DRAG the CONTENTS into the Win64 window.
+     Do not drag the .zip file itself.
+     If Windows asks to replace files, say YES.
+
+  7. Start the game.
+     The first start sits on a BLACK SCREEN for up to a minute.
+     That is normal. Wait.
+
+  8. Get into a tank. Press F3.
+
+
+=====================================================
+  CHECK IT: DO THE FILES SIT NEXT TO THE EXE?
+=====================================================
+
+  RIGHT - they are beside the exe:
+
+      Win64
+         call_to_arms_pe-Win64-Shipping.exe
+         dwmapi.dll          <-- here
+         ue4ss               <-- here (a folder)
+
+
+  WRONG - they are one folder too deep:
+
+      Win64
+         call_to_arms_pe-Win64-Shipping.exe
+         CtACmdr-...-Windows        <-- a folder named after the zip
+            dwmapi.dll              <-- too deep
+            ue4ss                   <-- too deep
+
+  If yours looks like the WRONG picture:
+     drag dwmapi.dll and the ue4ss folder OUT, up one level,
+     into Win64. Then delete the empty folder.
+
+
+=====================================================
+  KEYS
+=====================================================
+
   F3                Commander view on / off
   F4                Back to the normal view
   ALT + NUM 8 / 2   Camera forward / back
   ALT + NUM 4 / 6   Left / right
   ALT + NUM 9 / 3   Up / down
   ALT + NUM 5       Reset the camera offset
-  ALT + NUM 0       Save this tank's position (remembered next time)
-  F6                Write a report to CtACmdr.log (for bug reports)
+  ALT + NUM 0       Save this tank's position
+  F6                Write a report to CtACmdr.log
 
-Singleplayer only. Keep it out of multiplayer.
-
-
-WHAT ELSE IS IN HERE
---------------------
-UE4SS also comes with a few built-in helper mods (a cheat enabler and a
-console enabler). They are switched OFF in this zip, so nothing changes
-in the game except the commander view. To turn them on, edit
-ue4ss\Mods\mods.txt and change the 0 after the mod's name to 1.
+  Singleplayer only. Keep it out of multiplayer.
 
 
-IF YOU ALREADY USE UE4SS
-------------------------
-Do not use this zip. It would replace your UE4SS files and settings.
-Use the "mod-only" zip from the same download page instead.
+=====================================================
+  WHAT ELSE IS IN HERE
+=====================================================
+
+  UE4SS also comes with a few built-in helper mods
+  (a cheat enabler and a console enabler).
+  They are switched OFF in this zip.
+  Nothing changes in the game except the commander view.
+
+  To turn them on: edit  ue4ss\Mods\mods.txt
+  and change the 0 after the mod's name to 1.
 
 
-IF ANTIVIRUS REMOVES A FILE
----------------------------
-dwmapi.dll is how UE4SS loads into the game. It pretends to be a Windows
-file, and some antivirus programs dislike that. If the mod does nothing:
-  - Check your antivirus protection history for dwmapi.dll.
-  - Allow it (or allow the Win64 folder), then extract the zip again.
+=====================================================
+  ALREADY USE UE4SS?
+=====================================================
+
+  Do not use this zip.
+  It would replace your UE4SS files and settings.
+  Use the "mod-only" zip from the same download page.
 
 
-IF NOTHING HAPPENS
-------------------
-  - The files must sit NEXT TO the exe, not in a sub-folder.
-  - After one run, open  Win64\ue4ss\UE4SS.log
-    Look for the line:   Starting Lua mod 'CtACmdr'
-    If it is missing, send the log to the mod's author.
-  - The game was still open while you copied. Close it and copy again.
+=====================================================
+  IF NOTHING HAPPENS
+=====================================================
+
+  1. Look at the CHECK picture above.
+     Wrong folder is the most common problem.
+
+  2. After one run, open:   Win64\ue4ss\UE4SS.log
+     No such file?  UE4SS did not load.
+                    Check the files are next to the exe.
+     Look for the line:   Starting Lua mod 'CtACmdr'
+
+  3. Antivirus may remove dwmapi.dll.
+     Check your protection history. Allow it.
+     Then copy the files in again.
+
+  4. The game was still open while you copied.
+     Close it. Copy again.
 
 
-REMOVE IT
----------
-  Just the mod:   delete   Win64\ue4ss\Mods\CtACmdr
-  Switch it off but keep it:   delete  ...\CtACmdr\enabled.txt
-  Everything:     delete   Win64\dwmapi.dll   and   Win64\ue4ss
+=====================================================
+  REMOVE IT
+=====================================================
 
-Nothing is written into the game's .pak files and your saves are never
-touched. Steam "Verify integrity" ignores these files.
+  Just the mod:      delete   Win64\ue4ss\Mods\CtACmdr
+  Switch it off:     delete   Win64\ue4ss\Mods\CtACmdr\enabled.txt
+  Everything:        delete   Win64\dwmapi.dll
+                     and      Win64\ue4ss
 
-Your saved camera positions live in  Win64\CtACmdr_views.txt
+  Nothing is written into the game's .pak files.
+  Your saves are never touched.
+
+  Saved camera positions live in:  Win64\CtACmdr_views.txt
 
 
 More: https://github.com/murkzuk/CtACmdr
-MIT licensed. UE4SS is MIT licensed too, see ue4ss\LICENSE
+MIT licensed. UE4SS is MIT licensed too: see ue4ss\LICENSE

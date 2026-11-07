@@ -51,14 +51,53 @@ everything.
 1. Go to the **[latest release](https://github.com/murkzuk/CtACmdr/releases/latest)**
    and download **`CtACmdr-v…-Windows.zip`** (under *Assets*).
 2. **Close the game.**
-3. In Steam: right-click the game, **Manage**, **Browse local files**, then open
-   `call_to_arms_pe` > `Binaries` > `Win64`. That is the folder holding
-   `call_to_arms_pe-Win64-Shipping.exe`.
-4. **Extract the whole zip into that `Win64` folder.**
-   Next to the exe you should now see `dwmapi.dll` and a `ue4ss` folder.
-5. Start the game. **The first start sits on a black screen for up to a
+3. In Steam: right-click the game, **Manage**, **Browse local files**.
+4. Open these folders, one after the other:
+
+   ```text
+   call_to_arms_pe
+   Binaries
+   Win64
+   ```
+
+   You are now inside **`Win64`**. You can see `call_to_arms_pe-Win64-Shipping.exe`.
+5. Double-click the zip to **open** it, in a second window. You see its
+   **contents**: `dwmapi.dll`, a `ue4ss` folder and a read-me. Select the
+   contents (`Ctrl + A`) and **drag the contents into the `Win64` window**.
+   Do **not** drag the `.zip` file itself.
+6. Start the game. **The first start sits on a black screen for up to a
    minute. That is normal.**
-6. Get into a tank and press **F3**.
+7. Get into a tank and press **F3**.
+
+> ### ⚠️ The one thing that goes wrong
+>
+> **The contents of the zip must go INTO the `Win64` folder itself.**
+> Not the `.zip` file. The files and folders inside it.
+>
+> Windows' *Extract All* offers a new folder named after the zip.
+> **Do not use it. Nothing will work.**
+>
+> **Right:** beside the exe
+>
+> ```text
+> Win64
+>    call_to_arms_pe-Win64-Shipping.exe
+>    dwmapi.dll          <-- here
+>    ue4ss               <-- here (a folder)
+> ```
+>
+> **Wrong:** one folder too deep
+>
+> ```text
+> Win64
+>    call_to_arms_pe-Win64-Shipping.exe
+>    CtACmdr-...-Windows        <-- folder named after the zip
+>       dwmapi.dll              <-- too deep
+>       ue4ss                   <-- too deep
+> ```
+>
+> If yours looks like the wrong one, drag `dwmapi.dll` and `ue4ss` up one
+> level into `Win64`, then delete the empty folder.
 
 The zip also contains a `READ ME FIRST.txt` with the same steps.
 
