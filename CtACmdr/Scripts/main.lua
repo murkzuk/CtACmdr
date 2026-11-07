@@ -134,7 +134,12 @@ local function getPart(pawn, name)
 end
 
 -- ---------- the camera ----------
-local state = { off = { x = 0, y = 0, z = 0 }, on = false }
+-- where a tank starts if it has no saved position yet. Tuned on a
+-- PzKpfw IV; every vehicle can differ, so this is a starting point to
+-- nudge from rather than a correct answer.
+local DEFAULT = { x = -63.9, y = -3.0, z = -3.4 }
+
+local state = { off = { x = DEFAULT.x, y = DEFAULT.y, z = DEFAULT.z }, on = false }
 
 local function applyOffset(pawn)
     local arm = getPart(pawn, "FollowSpringArm")
@@ -181,8 +186,8 @@ local function cmdrOn()
         state.off = { x = saved.x or 0, y = saved.y or 0, z = saved.z or 0 }
         log("loaded saved offset for " .. tank)
     else
-        state.off = { x = 0, y = 0, z = 0 }
-        log("no saved offset for " .. tank)
+        state.off = { x = DEFAULT.x, y = DEFAULT.y, z = DEFAULT.z }
+        log("no saved offset for " .. tank .. " - using the default, ALT+NUM to tune, ALT+NUM 0 to save")
     end
     local arm = getPart(pawn, "FollowSpringArm")
     if arm then pcall(function() arm["TargetArmLength"] = 0.0 end) end
@@ -327,4 +332,4 @@ bind(Key.NUM_THREE, ALT, function() nudge("z", -STEP) end, "alt+num3")
 bind(Key.NUM_FIVE, ALT, resetOffset, "alt+num5")
 bind(Key.NUM_ZERO, ALT, saveTank, "alt+num0")
 
-print("[CtACmdr] v1.2 loaded. F3=commander view F4=normal ALT+NUM=move ALT+NUM0=save F6=report")
+print("[CtACmdr] v1.3 loaded. F3=commander view F4=normal ALT+NUM=move ALT+NUM0=save F6=report")
