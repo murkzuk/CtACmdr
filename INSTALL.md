@@ -222,6 +222,16 @@ That is UE4SS recording a handled first-chance exception, which this game
 throws often - it writes one most sessions. It is not a crash. Do not
 report it. The two are different files in different folders.
 
+They are about 33 MB each and they add up. Clean them with:
+
+    powershell -ExecutionPolicy Bypass -File tools\clean-dumps.ps1
+
+That keeps the two newest and deletes the rest. Options:
+
+    -Keep 0     delete them all
+    -DryRun     show what would go, delete nothing
+    -Usmap      also remove the .usmap file from UE4SS's DumpUSMAP
+
 **After a game update.**
 UE4SS usually keeps working. If mods stop loading, reinstall UE4SS from
 the link in step 2. The mod itself lives entirely in `Mods\CtACmdr` and
