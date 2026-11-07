@@ -222,7 +222,17 @@ That is UE4SS recording a handled first-chance exception, which this game
 throws often - it writes one most sessions. It is not a crash. Do not
 report it. The two are different files in different folders.
 
-They are about 33 MB each and they add up. Clean them with:
+**You can stop them being written at all.** In `Binaries\Win64\UE4SS-settings.ini`,
+find the `[CrashDump]` section and set:
+
+    EnableDumping = 0
+
+That is all. Unreal's own crash reporter is a separate system and still
+writes to `Saved\Crashes` for real crashes, so you lose nothing that
+matters. The only thing you give up is a minidump if UE4SS itself causes
+trouble - and `UE4SS.log` still records what it was doing.
+
+They are about 33 MB each and they add up. Clean up any existing ones with:
 
     powershell -ExecutionPolicy Bypass -File tools\clean-dumps.ps1
 
