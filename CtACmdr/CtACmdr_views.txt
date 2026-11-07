@@ -1,2 +1,2 @@
 # CtACmdr per-tank camera offsets: class x y z
-BP_PzKpfwIVAusfG_C -68.90 2.00 -3.40
+BP_PzKpfwIVAusfG_C -63.90 -3.00 -3.40
