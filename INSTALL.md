@@ -58,38 +58,48 @@ UE4SS is the mod loader. It is what lets a Lua script talk to the game.
 
 Go here:
 
-**https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/v3.0.1**
+**https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental2**
 
 Under Assets, download:
 
-    UE4SS_v3.0.1.zip        (about 5 MB)
+    UE4SS_v3.0.1-1217-g4fb9b615.zip        (about 8 MB)
 
-Ignore the files marked DEV or zDEV. Those are developer builds.
+Ignore the files with DEV in the name, and ignore the older
+`v3.0.1` release entirely.
 
-Why 3.0.1: it is the release this mod was built and tested against, on
-this exact game.
+**Why this build and not the normal 3.0.1 release:** the release build
+fails its own signature scan on this game, with
+
+    [PS] Failed to find FText::FText(FString&&)
+    PS scan failed
+
+and once that scan fails, no Lua mod loads at all - the mod is fine, the
+loader never gets far enough to try. Verified on this game: the release
+build fails, this experimental build reports `PS scan successful`.
 
 ---
 
 ## Step 3 - Unzip UE4SS into the game folder
 
-Open `UE4SS_v3.0.1.zip`. Inside you will see:
+Open the zip. Note the layout - newer UE4SS puts almost everything in a
+subfolder:
 
     dwmapi.dll
-    UE4SS.dll
-    UE4SS-settings.ini
-    Mods\
+    ue4ss        UE4SS.dll
+        UE4SS-settings.ini
+        Mods        ...
 
-Select those items and copy them into the `Binaries\Win64` folder from
-step 1. So you end up with:
+Copy `dwmapi.dll` and the whole `ue4ss` folder into `Binaries\Win64`
+from step 1, so you end up with:
 
     Binaries\Win64\call_to_arms_pe-Win64-Shipping.exe
     Binaries\Win64\dwmapi.dll
-    Binaries\Win64\UE4SS.dll
-    Binaries\Win64\UE4SS-settings.ini
-    Binaries\Win64\Mods\...
+    Binaries\Win64\ue4ss\UE4SS.dll
+    Binaries\Win64\ue4ss\Mods\...
+    Binaries\Win64\CtACmdr_views.txt      <- camera positions live here
 
-Do not put them in a subfolder. They must sit beside the exe.
+**The Mods folder is inside `ue4ss\`.** That catches people out. The
+CtACmdr folder goes in `ue4ss\Mods\CtACmdr`, not `Win64\Mods`.
 
 **How this works, briefly.** The game loads `dwmapi.dll` by itself.
 UE4SS is pretending to be that Windows file, so the game loads UE4SS
@@ -250,6 +260,12 @@ The installer does all of that for you:
 
 If `Mods` never appears even after a launch, UE4SS itself is not
 loading - check that `UE4SS.log` exists in `Binaries\\Win64`.
+
+**`UE4SS.log` says `PS scan failed`, and there is no `Starting Lua mod`.**
+Wrong UE4SS build. The v3.0.1 release fails its signature scan on this
+game - see step 2. Use the experimental build from
+https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental2 and check
+the log says `PS scan successful`.
 
 **The mod loads but F3 does nothing.**
 Check `UE4SS.log` for the line `Starting Lua mod 'CtACmdr'`. If it is

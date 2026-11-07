@@ -19,7 +19,14 @@ param(
 $ErrorActionPreference = "Stop"
 
 $bin = Join-Path $GameRoot "call_to_arms_pe\Binaries\Win64"
-$modsDir = Join-Path $bin "Mods"
+# Newer UE4SS builds keep their mods in ue4ss\Mods; older ones use Mods
+# next to the exe. Whichever exists wins; if neither, the old layout.
+$newLayoutMods = Join-Path $bin "ue4ss\Mods"
+if (Test-Path -LiteralPath (Join-Path $bin "ue4ss\UE4SS.dll")) {
+    $modsDir = $newLayoutMods
+} else {
+    $modsDir = Join-Path $bin "Mods"
+}
 $source = Join-Path $PSScriptRoot "..\CtACmdr"
 
 Write-Host ""
@@ -32,7 +39,9 @@ if (-not (Test-Path -LiteralPath $bin)) {
 }
 
 # UE4SS must be present or nothing will load
-if (-not (Test-Path -LiteralPath (Join-Path $bin "UE4SS.dll"))) {
+$ue4ssFlat = Join-Path $bin "UE4SS.dll"
+$ue4ssNew  = Join-Path $bin "ue4ss\UE4SS.dll"
+if ((-not (Test-Path -LiteralPath $ue4ssFlat)) -and (-not (Test-Path -LiteralPath $ue4ssNew))) {
     throw ("UE4SS.dll is not in " + $bin + " - copy UE4SS.dll, dwmapi.dll and UE4SS-settings.ini next to the game exe first. See INSTALL.md step 3.")
 }
 Write-Host "Found UE4SS.dll"

@@ -9,7 +9,8 @@
 
 param(
     [string]$GameRoot = "L:\SteamLibrary\steamapps\common\Call To Arms - Panzer Elite",
-    [string]$UE4SSVersion = "3.0.1",
+    [string]$UE4SSRelease = "experimental2",
+    [string]$UE4SSAsset = "UE4SS_v3.0.1-1217-g4fb9b615.zip",
     [switch]$QuietDumps,
     [switch]$Force
 )
@@ -19,10 +20,14 @@ $ErrorActionPreference = "Stop"
 # Windows PowerShell 5.1 can default to old TLS, which GitHub refuses
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch { }
 
-# SHA256 of UE4SS_v3.0.1.zip as published on the official release. The zip
-# contains a DLL that loads into the game, so it is worth not trusting the
-# network blindly.
-$UE4SS_SHA256 = "4B47D4BCEDDD2F561A4E395BFA00924CCFC945AF576A2D0C613E6537846C57EC"
+# SHA256 of the asset named above, checked before anything is unpacked.
+#
+# Why the experimental build and not the v3.0.1 release: the 3.0.1 release
+# build FAILS its own signature scan on this game (UE 5.4) with
+# "Failed to find FText::FText(FString&&)" and then no Lua mod loads at all.
+# The experimental build from November 2026 scans it successfully. Verified
+# in game on 07/11/2026, log: "PS scan successful" + "Starting Lua mod".
+$UE4SS_SHA256 = "FBDACD0FAE434E23D53B1181F6B085219D7CBF7E2CC8A13A00303F842C38194F"
 
 $bin = Join-Path $GameRoot "call_to_arms_pe\Binaries\Win64"
 $exe = Join-Path $bin "call_to_arms_pe-Win64-Shipping.exe"
@@ -41,12 +46,12 @@ $haveUE4SS = Test-Path -LiteralPath (Join-Path $bin "UE4SS.dll")
 if ($haveUE4SS -and (-not $Force)) {
     Write-Host "UE4SS is already installed, leaving it alone (use -Force to replace it)"
 } else {
-    $url = "https://github.com/UE4SS-RE/RE-UE4SS/releases/download/v" + $UE4SSVersion + "/UE4SS_v" + $UE4SSVersion + ".zip"
+    $url = "https://github.com/UE4SS-RE/RE-UE4SS/releases/download/" + $UE4SSRelease + "/" + $UE4SSAsset
     $tmp = Join-Path $env:TEMP ("ue4ss_" + [guid]::NewGuid().ToString("N").Substring(0, 8))
     New-Item -ItemType Directory -Force -Path $tmp | Out-Null
     $zip = Join-Path $tmp "ue4ss.zip"
 
-    Write-Host ("Downloading UE4SS v" + $UE4SSVersion + " from the official release...")
+    Write-Host ("Downloading " + $UE4SSAsset + " from the UE4SS experimental release...")
     try {
         Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing -TimeoutSec 120
     } catch {
@@ -70,25 +75,45 @@ if ($haveUE4SS -and (-not $Force)) {
 
     Expand-Archive -LiteralPath $zip -DestinationPath $tmp -Force
 
-    foreach ($f in @("UE4SS.dll", "dwmapi.dll")) {
-        $src = Join-Path $tmp $f
-        if (-not (Test-Path -LiteralPath $src)) { throw ("The UE4SS zip did not contain " + $f) }
-        Copy-Item -LiteralPath $src -Destination $bin -Force
+    # Newer UE4SS builds use a subfolder: dwmapi.dll sits next to the exe and
+    # everything else lives under ue4ss. Older builds are flat. Support both.
+    $newLayout = Test-Path -LiteralPath (Join-Path $tmp "ue4ss")
+    $dwmSrc = Join-Path $tmp "dwmapi.dll"
+    if (-not (Test-Path -LiteralPath $dwmSrc)) { throw "The UE4SS zip did not contain dwmapi.dll" }
+    Copy-Item -LiteralPath $dwmSrc -Destination $bin -Force
+
+    if ($newLayout) {
+        $ue4dst = Join-Path $bin "ue4ss"
+        New-Item -ItemType Directory -Force -Path $ue4dst | Out-Null
+        foreach ($item in (Get-ChildItem -LiteralPath (Join-Path $tmp "ue4ss"))) {
+            $target = Join-Path $ue4dst $item.Name
+            if ($item.PSIsContainer) {
+                Copy-Item -LiteralPath $item.FullName -Destination $target -Recurse -Force
+            } elseif (-not (Test-Path -LiteralPath $target) -or $item.Name -eq "UE4SS.dll") {
+                # settings belong to the user, the dll does not
+                Copy-Item -LiteralPath $item.FullName -Destination $target -Force
+            } else {
+                Write-Host ("Kept your existing " + $item.Name)
+            }
+        }
+        Write-Host "Installed UE4SS into the ue4ss folder (new layout)"
+    } else {
+        $dllSrc = Join-Path $tmp "UE4SS.dll"
+        if (-not (Test-Path -LiteralPath $dllSrc)) { throw "The UE4SS zip did not contain UE4SS.dll" }
+        Copy-Item -LiteralPath $dllSrc -Destination $bin -Force
+        $iniSrc = Join-Path $tmp "UE4SS-settings.ini"
+        $iniDst = Join-Path $bin "UE4SS-settings.ini"
+        if ((Test-Path -LiteralPath $iniSrc) -and (-not (Test-Path -LiteralPath $iniDst))) {
+            Copy-Item -LiteralPath $iniSrc -Destination $iniDst -Force
+            Write-Host "Installed a default UE4SS-settings.ini (none existed)"
+        } elseif (Test-Path -LiteralPath $iniDst) {
+            Write-Host "Kept your existing UE4SS-settings.ini"
+        }
+        Write-Host "Installed UE4SS next to the game exe (flat layout)"
     }
 
-    # Settings and existing mods belong to the user. Only add what is missing,
-    # never overwrite: -Force is meant to replace the DLLs, not reset their setup.
-    $iniSrc = Join-Path $tmp "UE4SS-settings.ini"
-    $iniDst = Join-Path $bin "UE4SS-settings.ini"
-    if ((Test-Path -LiteralPath $iniSrc) -and (-not (Test-Path -LiteralPath $iniDst))) {
-        Copy-Item -LiteralPath $iniSrc -Destination $iniDst -Force
-        Write-Host "Installed a default UE4SS-settings.ini (none existed)"
-    } elseif (Test-Path -LiteralPath $iniDst) {
-        Write-Host "Kept your existing UE4SS-settings.ini"
-    }
-
-    $modsSrc = Join-Path $tmp "Mods"
-    $modsDst = Join-Path $bin "Mods"
+    $modsSrc = if ($newLayout) { Join-Path $tmp "ue4ss\Mods" } else { Join-Path $tmp "Mods" }
+    $modsDst = if ($newLayout) { Join-Path $bin "ue4ss\Mods" } else { Join-Path $bin "Mods" }
     if (Test-Path -LiteralPath $modsSrc) {
         New-Item -ItemType Directory -Force -Path $modsDst | Out-Null
         foreach ($item in (Get-ChildItem -LiteralPath $modsSrc)) {
