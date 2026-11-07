@@ -3,11 +3,14 @@
 --
 --   F3            commander view on / off
 --   F4            back to the game's normal view
---   NUM 8 / 2     camera forward / back
---   NUM 4 / 6     left / right
---   NUM 9 / 3     up / down
---   NUM 5         reset the offset
---   NUM 0         save this tank's position
+--   ALT+NUM 8/2   camera forward / back
+--   ALT+NUM 4/6   left / right
+--   ALT+NUM 9/3   up / down
+--   ALT+NUM 5     reset the offset
+--   ALT+NUM 0     save this tank's position
+--
+-- ALT, not plain numpad: numpad navigates between units in skirmish mode.
+-- ALT, not CTRL: UE4SS uses CTRL+NUM 6..9 for debug file dumps.
 --   F6            write a report to CtACmdr.log
 --
 -- Applies itself about 1.5s after getting into a vehicle that has a saved
@@ -312,13 +315,16 @@ loadProfiles()
 bind(Key.F3, nil, toggle, "F3")
 bind(Key.F4, nil, cmdrOff, "F4")
 bind(Key.F6, nil, report, "F6")
-bind(Key.NUM_EIGHT, nil, function() nudge("x", STEP) end, "num8")
-bind(Key.NUM_TWO, nil, function() nudge("x", -STEP) end, "num2")
-bind(Key.NUM_FOUR, nil, function() nudge("y", -STEP) end, "num4")
-bind(Key.NUM_SIX, nil, function() nudge("y", STEP) end, "num6")
-bind(Key.NUM_NINE, nil, function() nudge("z", STEP) end, "num9")
-bind(Key.NUM_THREE, nil, function() nudge("z", -STEP) end, "num3")
-bind(Key.NUM_FIVE, nil, resetOffset, "num5")
-bind(Key.NUM_ZERO, nil, saveTank, "num0")
+local ALT = { ModifierKey.ALT }
+if ModifierKey.ALT == nil then print("[CtACmdr] WARNING: ModifierKey.ALT missing, camera keys will not work") end
 
-print("[CtACmdr] v1.1 loaded. F3=commander view F4=normal NUM8/2/4/6/9/3=move NUM0=save F6=report")
+bind(Key.NUM_EIGHT, ALT, function() nudge("x", STEP) end, "alt+num8")
+bind(Key.NUM_TWO, ALT, function() nudge("x", -STEP) end, "alt+num2")
+bind(Key.NUM_FOUR, ALT, function() nudge("y", -STEP) end, "alt+num4")
+bind(Key.NUM_SIX, ALT, function() nudge("y", STEP) end, "alt+num6")
+bind(Key.NUM_NINE, ALT, function() nudge("z", STEP) end, "alt+num9")
+bind(Key.NUM_THREE, ALT, function() nudge("z", -STEP) end, "alt+num3")
+bind(Key.NUM_FIVE, ALT, resetOffset, "alt+num5")
+bind(Key.NUM_ZERO, ALT, saveTank, "alt+num0")
+
+print("[CtACmdr] v1.2 loaded. F3=commander view F4=normal ALT+NUM=move ALT+NUM0=save F6=report")

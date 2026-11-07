@@ -134,17 +134,20 @@ Start the game and get into a tank.
 | --- | --- |
 | F3 | Commander view on / off |
 | F4 | Back to the game's normal view |
-| NUM 8 / 2 | Camera forward / back |
-| NUM 4 / 6 | Left / right |
-| NUM 9 / 3 | Up / down |
-| NUM 5 | Reset the position to zero |
-| NUM 0 | Save this tank's position |
+| ALT + NUM 8 / 2 | Camera forward / back |
+| ALT + NUM 4 / 6 | Left / right |
+| ALT + NUM 9 / 3 | Up / down |
+| ALT + NUM 5 | Reset the position to zero |
+| ALT + NUM 0 | Save this tank's position |
+
+Hold ALT. Plain numpad navigates between units in skirmish mode, and
+CTRL+NUM 6..9 is taken by UE4SS for debug dumps.
 | F6 | Write a report to CtACmdr.log |
 
 Each numpad press moves the camera 5 cm.
 
-If the view is buried in the cupola machine gun, tap NUM 2 to pull
-back, and NUM 9 to lift. When it looks right, press NUM 0.
+If the view is buried in the cupola machine gun, tap ALT+NUM 2 to pull
+back, and ALT+NUM 9 to lift. When it looks right, press ALT+NUM 0.
 
 Your saved positions live in:
 
