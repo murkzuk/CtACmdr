@@ -67,6 +67,10 @@ Under Assets, download:
 Ignore the files with DEV in the name, and ignore the older
 `v3.0.1` release entirely.
 
+This is a rolling pre-release, so the file can be replaced. If
+`tools\setup.ps1` ever refuses with a checksum mismatch, that is the pin
+doing its job - check the digest on GitHub and open an issue here.
+
 **Why this build and not the normal 3.0.1 release:** the release build
 fails its own signature scan on this game, with
 
@@ -207,6 +211,13 @@ Delete `Binaries\Win64\Mods\CtACmdr`
 
 Delete these from `Binaries\Win64`:
 
+    dwmapi.dll          <- the proxy, at the root
+
+and the whole `ue4ss\` folder, which holds UE4SS.dll,
+UE4SS-settings.ini, the log and Mods.
+
+On the older flat layout instead:
+
     dwmapi.dll
     UE4SS.dll
     UE4SS-settings.ini
@@ -291,7 +302,8 @@ That is UE4SS recording a handled first-chance exception, which this game
 throws often - it writes one most sessions. It is not a crash. Do not
 report it. The two are different files in different folders.
 
-**You can stop them being written at all.** In `Binaries\Win64\UE4SS-settings.ini`,
+**You can stop them being written at all.** In `Binaries\Win64\ue4ss\UE4SS-settings.ini`
+(or `Binaries\Win64\UE4SS-settings.ini` on the older flat layout),
 find the `[CrashDump]` section and set:
 
     EnableDumping = 0
@@ -321,6 +333,6 @@ survives game updates.
 ## Links
 
 - This mod: https://github.com/murkzuk/CtACmdr
-- UE4SS v3.0.1: https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/v3.0.1
+- UE4SS experimental build: https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental2
 - UE4SS project: https://github.com/UE4SS-RE/RE-UE4SS
 - Game internals we mapped: [docs/api-notes.md](docs/api-notes.md)

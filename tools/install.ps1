@@ -42,7 +42,7 @@ if (-not (Test-Path -LiteralPath $bin)) {
 $ue4ssFlat = Join-Path $bin "UE4SS.dll"
 $ue4ssNew  = Join-Path $bin "ue4ss\UE4SS.dll"
 if ((-not (Test-Path -LiteralPath $ue4ssFlat)) -and (-not (Test-Path -LiteralPath $ue4ssNew))) {
-    throw ("UE4SS.dll is not in " + $bin + " - copy UE4SS.dll, dwmapi.dll and UE4SS-settings.ini next to the game exe first. See INSTALL.md step 3.")
+    throw ("UE4SS.dll is not in " + $bin + " nor in " + (Join-Path $bin "ue4ss") + ". Install UE4SS first - see INSTALL.md step 3. Newer builds put it in a ue4ss subfolder, older ones next to the game exe.")
 }
 Write-Host "Found UE4SS.dll"
 

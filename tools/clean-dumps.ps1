@@ -27,8 +27,17 @@ if (-not (Test-Path -LiteralPath $bin)) { throw "Game not found at: $bin" }
 
 $targets = @()
 
-$dumps = @(Get-ChildItem -LiteralPath $bin -Filter "crash_*.dmp" -File -ErrorAction SilentlyContinue |
-           Sort-Object LastWriteTime -Descending)
+# Dumps can sit next to the exe (older UE4SS) or inside ue4ss\ (newer
+# UE4SS writes its log there, so presumably its dumps too). No dump has
+# been seen from the new layout yet, so both folders are checked.
+$dumpFolders = @($bin)
+$ue4ssDir = Join-Path $bin "ue4ss"
+if (Test-Path -LiteralPath $ue4ssDir) { $dumpFolders += $ue4ssDir }
+
+$dumps = @(foreach ($folder in $dumpFolders) {
+               Get-ChildItem -LiteralPath $folder -Filter "crash_*.dmp" -File -ErrorAction SilentlyContinue
+           })
+$dumps = @($dumps | Sort-Object LastWriteTime -Descending)
 if ($dumps.Count -gt $Keep) {
     $targets += $dumps[$Keep..($dumps.Count - 1)]
 }
@@ -58,6 +67,8 @@ foreach ($f in $targets) {
 
 if ($DryRun) { Write-Host "Dry run - nothing deleted." }
 else {
-    $left = @(Get-ChildItem -LiteralPath $bin -Filter "crash_*.dmp" -File -ErrorAction SilentlyContinue)
+    $left = @(foreach ($folder in $dumpFolders) {
+                  Get-ChildItem -LiteralPath $folder -Filter "crash_*.dmp" -File -ErrorAction SilentlyContinue
+              })
     Write-Host ("Done. {0} dump(s) left." -f $left.Count)
 }

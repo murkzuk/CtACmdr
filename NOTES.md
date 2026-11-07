@@ -194,20 +194,22 @@ being on foot, do not happen in the campaign as tested.
 
 `tools\setup.ps1` refuses to install UE4SS unless the zip matches:
 
-    UE4SS_v3.0.1.zip
-    5,523,402 bytes
-    SHA256 4B47D4BCEDDD2F561A4E395BFA00924CCFC945AF576A2D0C613E6537846C57EC
+    UE4SS_v3.0.1-1217-g4fb9b615.zip        (experimental2 release)
+    8,759,304 bytes
+    SHA256 FBDACD0FAE434E23D53B1181F6B085219D7CBF7E2CC8A13A00303F842C38194F
 
-That value was confirmed by downloading the asset twice, independently,
-and getting identical bytes both times on 07/11/2026.
+This one is properly confirmed, unlike the earlier v3.0.1 pin: **GitHub
+publishes its own digest for this asset and it matches**
+(`sha256:fbdacd0f...194f`). So the file we download is the file GitHub
+holds, checked by them and by us.
 
 **What it catches:** a corrupted download, a truncated file, or something
 substituted on the network.
 
-**What it cannot catch:** tampering at the source. GitHub's own `digest`
-field is empty for this asset - it was uploaded February 2024, before
-GitHub computed server-side digests - so nothing third-party independently
-confirms those bytes. UE4SS also does not publish signed releases.
+**What it still cannot catch:** the release asset itself having been
+tampered with upstream. UE4SS publishes no signatures.
 
-If UE4SS ever publishes signed assets or a digest, switch to verifying
-against that instead of a hash copied out of a download.
+**It is a rolling pre-release.** The `experimental2` assets can be
+replaced. If the checksum ever stops matching, setup refuses to install -
+that is the pin doing its job, not a bug. The answer is to check the new
+digest on GitHub and update the constant.

@@ -29,6 +29,22 @@ try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::
 # in game on 07/11/2026, log: "PS scan successful" + "Starting Lua mod".
 $UE4SS_SHA256 = "FBDACD0FAE434E23D53B1181F6B085219D7CBF7E2CC8A13A00303F842C38194F"
 
+# Copies files that are missing, recursing into subfolders. Never overwrites
+# an existing file, and never copies a folder into an existing folder of the
+# same name - which is what made a second run produce ue4ss\Mods\Mods.
+function Copy-MissingTree([string]$Source, [string]$Target) {
+    New-Item -ItemType Directory -Force -Path $Target | Out-Null
+    foreach ($f in (Get-ChildItem -LiteralPath $Source -File -ErrorAction SilentlyContinue)) {
+        $t = Join-Path $Target $f.Name
+        if (-not (Test-Path -LiteralPath $t)) {
+            Copy-Item -LiteralPath $f.FullName -Destination $t -Force
+        }
+    }
+    foreach ($d in (Get-ChildItem -LiteralPath $Source -Directory -ErrorAction SilentlyContinue)) {
+        Copy-MissingTree $d.FullName (Join-Path $Target $d.Name)
+    }
+}
+
 $bin = Join-Path $GameRoot "call_to_arms_pe\Binaries\Win64"
 $exe = Join-Path $bin "call_to_arms_pe-Win64-Shipping.exe"
 
@@ -42,7 +58,9 @@ if (-not (Test-Path -LiteralPath $exe)) {
 }
 
 # --- is UE4SS already installed? --------------------------------
-$haveUE4SS = Test-Path -LiteralPath (Join-Path $bin "UE4SS.dll")
+# an install counts as present in either layout
+$haveUE4SS = (Test-Path -LiteralPath (Join-Path $bin "UE4SS.dll")) -or
+             (Test-Path -LiteralPath (Join-Path $bin "ue4ss\UE4SS.dll"))
 if ($haveUE4SS -and (-not $Force)) {
     Write-Host "UE4SS is already installed, leaving it alone (use -Force to replace it)"
 } else {
@@ -88,7 +106,8 @@ if ($haveUE4SS -and (-not $Force)) {
         foreach ($item in (Get-ChildItem -LiteralPath (Join-Path $tmp "ue4ss"))) {
             $target = Join-Path $ue4dst $item.Name
             if ($item.PSIsContainer) {
-                Copy-Item -LiteralPath $item.FullName -Destination $target -Recurse -Force
+                # merge, do not stack folders inside each other
+                Copy-MissingTree $item.FullName $target
             } elseif (-not (Test-Path -LiteralPath $target) -or $item.Name -eq "UE4SS.dll") {
                 # settings belong to the user, the dll does not
                 Copy-Item -LiteralPath $item.FullName -Destination $target -Force
@@ -133,8 +152,13 @@ if ($haveUE4SS -and (-not $Force)) {
 }
 
 # --- optionally stop the 33MB dumps ---------------------------------
-$ini = Join-Path $bin "UE4SS-settings.ini"
-if ($QuietDumps -and (Test-Path -LiteralPath $ini)) {
+# the ini lives beside UE4SS.dll, which is ue4ss\ in the new layout
+$ini = Join-Path $bin "ue4ss\UE4SS-settings.ini"
+if (-not (Test-Path -LiteralPath $ini)) { $ini = Join-Path $bin "UE4SS-settings.ini" }
+
+if ($QuietDumps -and (-not (Test-Path -LiteralPath $ini))) {
+    Write-Host "Could not find UE4SS-settings.ini, so crash dumping was left unchanged"
+} elseif ($QuietDumps) {
     $text = Get-Content -LiteralPath $ini -Raw
     if ($text -match "(?m)^EnableDumping\s*=\s*1") {
         $text = $text -replace "(?m)^EnableDumping\s*=\s*1", "EnableDumping = 0"
