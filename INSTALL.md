@@ -198,6 +198,30 @@ anything is wrong.
   protection history, allow the folder, and re-copy.
 - The game was not fully closed when you copied the files.
 
+**There is no Mods folder in Binaries\\Win64.**
+Normal, and easy to fix. Two causes:
+
+- The UE4SS zip was extracted without its folders, so only the DLLs
+  arrived.
+- Some UE4SS builds do not create `Mods` until the game has been run
+  once with UE4SS loading.
+
+Either way, make it yourself. Inside `Binaries\\Win64`:
+
+1. New folder called exactly `Mods`
+2. Inside that, a folder called `CtACmdr`
+3. Inside that, a folder called `Scripts`
+4. Put `main.lua` in `Scripts\\`
+5. In `Mods\\mods.txt` (create it if it is not there) add the line
+   `CtACmdr : 1`
+
+The installer does all of that for you:
+
+    powershell -ExecutionPolicy Bypass -File tools\\install.ps1
+
+If `Mods` never appears even after a launch, UE4SS itself is not
+loading - check that `UE4SS.log` exists in `Binaries\\Win64`.
+
 **The mod loads but F3 does nothing.**
 Check `UE4SS.log` for the line `Starting Lua mod 'CtACmdr'`. If it is
 missing, the `CtACmdr : 1` line in `mods.txt` is missing or has a typo.

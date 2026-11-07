@@ -1,6 +1,11 @@
 # Installs CtACmdr into the game.
+#
 #   powershell -ExecutionPolicy Bypass -File tools\install.ps1
-# Add -GameRoot "D:\somewhere\Call To Arms - Panzer Elite" if the game moves.
+#   powershell -ExecutionPolicy Bypass -File tools\install.ps1 -GameRoot "D:\Games\Call To Arms - Panzer Elite"
+#
+# Creates the Mods folder and mods.txt when UE4SS did not leave them
+# behind, which happens whenever the UE4SS zip is extracted without its
+# folders.
 
 param(
     [string]$GameRoot = "L:\SteamLibrary\steamapps\common\Call To Arms - Panzer Elite"
@@ -12,40 +17,63 @@ $bin = Join-Path $GameRoot "call_to_arms_pe\Binaries\Win64"
 $modsDir = Join-Path $bin "Mods"
 $source = Join-Path $PSScriptRoot "..\CtACmdr"
 
+Write-Host ""
+Write-Host ("Game    : " + $GameRoot)
+Write-Host ("Plugins : " + $bin)
+Write-Host ""
+
 if (-not (Test-Path -LiteralPath $bin)) {
-    throw "Game not found at: $bin"
+    throw ("Game not found at: " + $bin + " - check that -GameRoot points at the folder holding call_to_arms_pe.exe")
 }
+
+# UE4SS must be present or nothing will load
 if (-not (Test-Path -LiteralPath (Join-Path $bin "UE4SS.dll"))) {
-    throw "UE4SS is not installed in $bin - this mod needs it"
+    throw ("UE4SS.dll is not in " + $bin + " - copy UE4SS.dll, dwmapi.dll and UE4SS-settings.ini next to the game exe first. See INSTALL.md step 3.")
 }
+Write-Host "Found UE4SS.dll"
+
 if (-not (Test-Path -LiteralPath $source)) {
-    throw "Mod source not found at: $source"
+    throw ("Mod source not found at: " + $source + " - run this from the cloned repo folder")
 }
 
-# 1. copy the mod
-Copy-Item -LiteralPath $source -Destination $modsDir -Recurse -Force
-Write-Host "Copied mod to $modsDir\CtACmdr"
+# create the Mods folder if UE4SS did not
+if (-not (Test-Path -LiteralPath $modsDir)) {
+    New-Item -ItemType Directory -Path $modsDir -Force | Out-Null
+    Write-Host "Created the missing Mods folder"
+} else {
+    Write-Host "Mods folder already there"
+}
 
-# 2. copy any saved camera positions
+Copy-Item -LiteralPath $source -Destination $modsDir -Recurse -Force
+Write-Host ("Copied the mod to " + $modsDir + "\CtACmdr")
+
 $views = Join-Path $source "CtACmdr_views.txt"
 if (Test-Path -LiteralPath $views) {
     Copy-Item -LiteralPath $views -Destination $bin -Force
     Write-Host "Restored saved camera positions"
 }
 
-# 3. make sure it is switched on in mods.txt
+# create mods.txt if UE4SS did not
 $modsTxt = Join-Path $modsDir "mods.txt"
 if (-not (Test-Path -LiteralPath $modsTxt)) {
-    throw "mods.txt not found in $modsDir"
-}
-$content = Get-Content -LiteralPath $modsTxt -Raw
-if ($content -notmatch "(?m)^\s*CtACmdr\s*:") {
-    Add-Content -LiteralPath $modsTxt -Value ""
-    Add-Content -LiteralPath $modsTxt -Value "CtACmdr : 1"
-    Write-Host "Enabled CtACmdr in mods.txt"
+    Set-Content -LiteralPath $modsTxt -Value "CtACmdr : 1" -Encoding ASCII
+    Write-Host "Created mods.txt and enabled CtACmdr"
 } else {
-    Write-Host "CtACmdr already listed in mods.txt"
+    $content = Get-Content -LiteralPath $modsTxt -Raw
+    if ($content -notmatch "(?m)^\s*CtACmdr\s*:") {
+        Add-Content -LiteralPath $modsTxt -Value ""
+        Add-Content -LiteralPath $modsTxt -Value "CtACmdr : 1"
+        Write-Host "Enabled CtACmdr in mods.txt"
+    } else {
+        Write-Host "CtACmdr already enabled in mods.txt"
+    }
+}
+
+if (-not (Test-Path -LiteralPath (Join-Path $modsDir "CtACmdr\Scripts\main.lua"))) {
+    throw "Something went wrong - main.lua did not land in the Mods folder"
 }
 
 Write-Host ""
 Write-Host "Done. Start the game, get in a tank, press F3."
+Write-Host "If the keys do nothing, look for the line  Starting Lua mod CtACmdr  in UE4SS.log"
+Write-Host ""
