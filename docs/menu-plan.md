@@ -211,3 +211,44 @@ together. They stay in together; each is cheap and each guards a failure
 we have already seen.
 
 **Phase 1 is complete. Phase 2 can start.**
+
+---
+
+## Phase 2 first pass - done
+
+The panel now lives inside `CtACmdr` itself, not in a probe. ModMenu is
+an **optional** dependency: if `require("ModMenu.ModMenu")` fails the mod
+logs one line and carries on with keys only, so nobody loses the camera
+because a library is missing.
+
+Confirmed by screenshot at the menu:
+
+```
+CtACmdr
+Commander view
+  [ ] Commander view: OFF
+  tank: -
+  F5 closes, F6 is the way out
+  Offset X (cm)  -65
+  Offset Y (cm)   -4
+  Offset Z (cm)   -4
+  [Back off 5] [Raise 5]
+  [Reset]      [Save this tank]
+```
+
+Design points worth keeping:
+
+- **F5 is bound by the mod**, not handed to ModMenu, so the close path
+  always runs our own input restore. That is the fix for the freeze.
+- **Every action refreshes the panel** through a forward-declared
+  `syncPanel`, so keys and panel cannot disagree about the offset.
+- **F6 stays a panic key.**
+- The panel calls the same functions the keys call. Nothing is
+  implemented twice.
+
+Still to do before this ships:
+
+1. In-game confirmation: tick the checkbox in a tank, edit a number, save.
+2. Bundle ModMenu into the release zip with its MIT licence and a pinned
+   checksum, the same treatment UE4SS got. Otherwise the one-zip install
+   has no panel and users will not know to fetch a library.

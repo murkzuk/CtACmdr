@@ -219,6 +219,10 @@ end
 -- nudge from rather than a correct answer.
 local DEFAULT = { x = -63.9, y = -3.0, z = -3.4 }
 
+-- Assigned further down if ModMenu is available. Forward declared so the
+-- action functions can refresh the panel without knowing whether it exists.
+local syncPanel = function() end
+
 local state = { off = { x = DEFAULT.x, y = DEFAULT.y, z = DEFAULT.z }, on = false }
 
 -- Originals are kept per vehicle, keyed by the pawn's full name, and are
@@ -323,6 +327,7 @@ local function cmdrOn()
     state.tank = tank
     pinned[fullname(pawn)] = true
     lastPinned = pawn
+    pcall(syncPanel)
 end
 
 local function cmdrOff(target)
@@ -346,6 +351,7 @@ local function cmdrOff(target)
     pinned[key] = nil
     state.on = false
     if lastPinned == pawn then lastPinned = nil end
+    pcall(syncPanel)
 end
 
 local function toggle()
@@ -364,6 +370,7 @@ local function nudge(axis, delta)
     log(string.format("nudge %s %+.0f  offset (%.0f, %.0f, %.0f)", axis, delta,
         state.off.x, state.off.y, state.off.z))
     applyOffset(pawn)
+    pcall(syncPanel)
 end
 
 local function resetOffset()
@@ -373,6 +380,7 @@ local function resetOffset()
     state.off = { x = 0, y = 0, z = 0 }
     log("offset reset")
     applyOffset(pawn)
+    pcall(syncPanel)
 end
 
 local function saveTank()
@@ -389,6 +397,7 @@ local function saveTank()
     local okW = saveProfiles()
     log(string.format("SAVED %s = (%.1f, %.1f, %.1f) file=%s", tank,
         state.off.x, state.off.y, state.off.z, tostring(okW)))
+    pcall(syncPanel)
 end
 
 local function report()
@@ -453,6 +462,132 @@ pcall(function()
         end
     end)
 end)
+
+-- ---------- in-game panel (optional, needs ModMenu) ----------
+-- ModMenu is a shared library, not an enabled mod. If it is not installed
+-- the mod works exactly as before, on keys only.
+local MenuOpen = false
+
+local function getPanelPC()
+    local list = nil
+    pcall(function() list = FindAllOf("PlayerController") end)
+    if not list then return nil end
+    for _, p in ipairs(list) do
+        local valid = false
+        pcall(function() valid = p:IsValid() end)
+        if valid and not string.find(fullname(p), "Default__", 1, true) then return p end
+    end
+    return nil
+end
+
+-- Hand the game back to plain mouse-look. ModMenu restores input on close,
+-- but this game fights for the mouse, so we do it ourselves as well.
+local function restoreGameInput(tag)
+    local pc = getPanelPC()
+    if pc == nil then return end
+    local lib = nil
+    pcall(function() lib = StaticFindObject("/Script/UMG.Default__WidgetBlueprintLibrary") end)
+    if lib ~= nil then
+        local ok = pcall(function() lib:SetInputMode_GameOnly(pc, false) end)
+        if not ok then pcall(function() lib:SetInputMode_GameOnly(pc) end) end
+    end
+    pcall(function() pc.bShowMouseCursor = false end)
+    pcall(function() pc:SetIgnoreLookInput(false) end)
+    pcall(function() pc:SetIgnoreMoveInput(false) end)
+    log("  input restored (" .. tostring(tag) .. ")")
+end
+
+openLog()
+local okReq, ModMenu = pcall(require, "ModMenu.ModMenu")
+if okReq and type(ModMenu) == "table" then
+    local okInit = pcall(function()
+        ModMenu.Init({
+            title = "CtACmdr",
+            instanceId = "CtACmdr",
+            theme = "dark",
+            keyHint = "F5",
+            dock = "left",
+            ignoreLook = true,
+        })
+    end)
+    log("panel: ModMenu ready=" .. tostring(okInit))
+
+    local okReg = pcall(function()
+        ModMenu.Register({
+            id = "cmdr",
+            title = "Commander view",
+            items = {
+                { type = "checkbox", id = "on", label = "Commander view", default = false,
+                  onChange = function(v)
+                      if v then cmdrOn() else cmdrOff() end
+                      log("panel: view " .. (v and "on" or "off"))
+                  end },
+                { type = "label", id = "tank", label = "tank: -" },
+                { type = "label", id = "status", label = "F5 closes, F6 is the way out" },
+                { type = "separator" },
+                { type = "number", id = "ox", label = "Offset X (cm)", default = state.off.x, integer = true, min = -600, max = 600,
+                  onChange = function(v) state.off.x = v; local p = getVehicle(); if p then applyOffset(p) end; pcall(syncPanel) end },
+                { type = "number", id = "oy", label = "Offset Y (cm)", default = state.off.y, integer = true, min = -600, max = 600,
+                  onChange = function(v) state.off.y = v; local p = getVehicle(); if p then applyOffset(p) end; pcall(syncPanel) end },
+                { type = "number", id = "oz", label = "Offset Z (cm)", default = state.off.z, integer = true, min = -600, max = 600,
+                  onChange = function(v) state.off.z = v; local p = getVehicle(); if p then applyOffset(p) end; pcall(syncPanel) end },
+                { type = "row", items = {
+                    { type = "button", id = "back", label = "Back off 5", onPress = function() nudge("x", -STEP) end },
+                    { type = "button", id = "raise", label = "Raise 5", onPress = function() nudge("z", STEP) end },
+                } },
+                { type = "row", items = {
+                    { type = "button", id = "reset", label = "Reset", variant = "warning", onPress = function() resetOffset() end },
+                    { type = "button", id = "save", label = "Save this tank", variant = "primary", onPress = function() saveTank() end },
+                } },
+            },
+        })
+    end)
+    log("panel: section registered=" .. tostring(okReg))
+
+    -- our own key, so the close path is ours and the restore always runs
+    RegisterKeyBind(Key.F5, function()
+        local ok, err = pcall(function()
+            if not MenuOpen then
+                ModMenu.Open()
+                MenuOpen = true
+                log("panel OPEN")
+            else
+                ModMenu.Close()
+                MenuOpen = false
+                log("panel CLOSED")
+                ExecuteWithDelay(150, function() restoreGameInput("after-close") end)
+            end
+            pcall(syncPanel)
+        end)
+        if not ok then log("F5 failed: " .. tostring(err)) end
+    end)
+
+    -- panic: works even when the game ignores the mouse, because UE4SS
+    -- keybinds do not go through the game's input
+    RegisterKeyBind(Key.F6, function()
+        log("PANIC")
+        pcall(function() ModMenu.Close() end)
+        MenuOpen = false
+        ExecuteInGameThread(function()
+            ExecuteWithDelay(100, function() restoreGameInput("panic") end)
+        end)
+    end)
+
+    syncPanel = function()
+        pcall(function()
+            local pawn = getVehicle()
+            ModMenu.Set("cmdr", "on", state.on == true)
+            ModMenu.Set("cmdr", "ox", math.floor((state.off.x or 0) + 0.5))
+            ModMenu.Set("cmdr", "oy", math.floor((state.off.y or 0) + 0.5))
+            ModMenu.Set("cmdr", "oz", math.floor((state.off.z or 0) + 0.5))
+            if pawn ~= nil then
+                ModMenu.SetLabel("cmdr", "tank", "tank: " .. tankName(pawn))
+            end
+        end)
+    end
+else
+    log("panel: ModMenu not found, keys only. Install ModMenu into ue4ss/Mods/shared to get the panel.")
+end
 
 -- ---------- keys ----------
 local function bind(key, mods, fn, label)
