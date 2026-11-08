@@ -140,3 +140,53 @@ resolves through `require("ModMenu.ModMenu")` from
 captures the mouse for camera look, which is exactly when a menu tends to
 lose its cursor. That is the next thing to test, and it needs someone in
 a tank - it cannot be checked from the menu.
+
+---
+
+## Phase 1b result - it works in the menu, and it can strand the game
+
+Reported from a real session: opening the panel **in gameplay** made the game
+semi-freeze, and closing it left the game alive but unclickable. Refocusing
+did not help; Alt+F4 was the only way out.
+
+That is the cursor risk from this plan arriving exactly where predicted.
+Two things were missing:
+
+1. **The panel opened in gameplay with no way to hand input back.** ModMenu
+   does restore GameOnly on close, but nothing guarantees it won when the
+   game was still fighting for the mouse.
+2. **Nothing could recover the session.** Alt+F4 was the only exit.
+
+### The fix, now in the probe
+
+Read from ModMenu's own source rather than guessed: it applies input mode
+through `/Script/UMG.Default__WidgetBlueprintLibrary`:
+
+```lua
+lib:SetInputMode_GameOnly(pc, false)   -- UE5 arity
+pc.bShowMouseCursor = false
+pc:SetIgnoreLookInput(false)
+pc:SetIgnoreMoveInput(false)
+```
+
+So the probe now does three things:
+
+- **Closing the panel always runs that restore itself**, 150 ms after
+  `ModMenu.Close()`, instead of trusting the framework to win.
+- **F6 is a panic key.** It closes the menu and forces the same restore.
+  Critical detail: UE4SS keybinds go through UE4SS, not the game's input,
+  so **F6 still fires when the game has stopped responding to the mouse**.
+- **`ignoreLook = true`**, the documented option for mouse-look games. The
+  camera should no longer fight the cursor while the panel is open.
+
+Also removed: the probe used to open itself 15 seconds after load. A
+diagnostic that pops up unbidden mid-mission is a bad diagnostic.
+
+### Tested, and not
+
+Tested at the main menu: open, close, restore and panic all log correctly,
+game stays responsive.
+
+**Not tested: gameplay.** That is where it failed, and it needs a person in
+a tank. Steps: F5 to open, click the checkbox, F5 to close. If the game
+feels stuck, press **F6**, which is the whole point of adding it.
