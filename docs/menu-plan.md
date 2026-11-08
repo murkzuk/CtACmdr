@@ -252,3 +252,27 @@ Still to do before this ships:
 2. Bundle ModMenu into the release zip with its MIT licence and a pinned
    checksum, the same treatment UE4SS got. Otherwise the one-zip install
    has no panel and users will not know to fetch a library.
+
+---
+
+## Phase 2 - two bugs found in use, both fixed
+
+**"Nudge 5 does nothing".** The buttons called `nudge()`, which refuses when
+the commander view is off - a guard added so the keys cannot move the
+normal camera. From a panel that is indistinguishable from broken.
+The panel now turns the view on first, then nudges:
+`panelNudge()` calls `cmdrOn()` if `state.on` is false.
+
+**"I typed 60 and got 91".** The number field's `onChange` wrote the value
+and then called `syncPanel()`, which pushed that value straight back into
+the box the user was typing in. Every keystroke fought a rewrite.
+`syncPanel` is no longer called from the number fields.
+
+Verified after the fix: typing 6 then 0 logs `Y set to 6` then
+`Y set to 60`, and the box displays 60.
+
+Worth knowing for the final design: **number fields commit per keystroke**,
+not on Enter. That is how the widget parses, and it is fine now that
+nothing writes back, but it means a partly-typed number is briefly applied.
+If that turns out to be annoying in play, the fix is a commit button rather
+than a live field.

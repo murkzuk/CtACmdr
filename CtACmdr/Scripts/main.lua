@@ -498,6 +498,16 @@ local function restoreGameInput(tag)
 end
 
 openLog()
+-- From the panel, a nudge should just work: if the commander view is off,
+-- turn it on first rather than refusing the way the key handler does.
+local function panelNudge(axis, delta)
+    if not state.on then
+        log("panel: view was off, turning it on")
+        cmdrOn()
+    end
+    nudge(axis, delta)
+end
+
 local okReq, ModMenu = pcall(require, "ModMenu.ModMenu")
 if okReq and type(ModMenu) == "table" then
     local okInit = pcall(function()
@@ -526,14 +536,31 @@ if okReq and type(ModMenu) == "table" then
                 { type = "label", id = "status", label = "F5 closes, F6 is the way out" },
                 { type = "separator" },
                 { type = "number", id = "ox", label = "Offset X (cm)", default = state.off.x, integer = true, min = -600, max = 600,
-                  onChange = function(v) state.off.x = v; local p = getVehicle(); if p then applyOffset(p) end; pcall(syncPanel) end },
+                  onChange = function(v)
+                      -- deliberately no syncPanel here: pushing the value back
+                      -- into the box fights the user mid-keystroke
+                      state.off.x = v
+                      local p = getVehicle()
+                      if p then applyOffset(p) end
+                      log(string.format("panel: X set to %s", tostring(v)))
+                  end },
                 { type = "number", id = "oy", label = "Offset Y (cm)", default = state.off.y, integer = true, min = -600, max = 600,
-                  onChange = function(v) state.off.y = v; local p = getVehicle(); if p then applyOffset(p) end; pcall(syncPanel) end },
+                  onChange = function(v)
+                      state.off.y = v
+                      local p = getVehicle()
+                      if p then applyOffset(p) end
+                      log(string.format("panel: Y set to %s", tostring(v)))
+                  end },
                 { type = "number", id = "oz", label = "Offset Z (cm)", default = state.off.z, integer = true, min = -600, max = 600,
-                  onChange = function(v) state.off.z = v; local p = getVehicle(); if p then applyOffset(p) end; pcall(syncPanel) end },
+                  onChange = function(v)
+                      state.off.z = v
+                      local p = getVehicle()
+                      if p then applyOffset(p) end
+                      log(string.format("panel: Z set to %s", tostring(v)))
+                  end },
                 { type = "row", items = {
-                    { type = "button", id = "back", label = "Back off 5", onPress = function() nudge("x", -STEP) end },
-                    { type = "button", id = "raise", label = "Raise 5", onPress = function() nudge("z", STEP) end },
+                    { type = "button", id = "back", label = "Back off 5", onPress = function() panelNudge("x", -STEP) end },
+                    { type = "button", id = "raise", label = "Raise 5", onPress = function() panelNudge("z", STEP) end },
                 } },
                 { type = "row", items = {
                     { type = "button", id = "reset", label = "Reset", variant = "warning", onPress = function() resetOffset() end },
