@@ -44,17 +44,42 @@ A `CtAUnlock` probe that, names only:
 This is the same names-only enumeration that has never once frozen this
 game, as long as we never read a value whose name we have not seen first.
 
-### Step 2 - pick the cheapest lever, in this order
+### Step 2 - edit the garage DataTable
 
-1. **A bool or array on the progression object.** If unlocks live in a
-   list we can add to, that is a handful of writes and no hooks.
-2. **`bUnlockedByDefault`** on the garage table entries. If the table is
-   readable at runtime, flipping this for every row is clean.
-3. **Hook `IsVehicleUnlocked`.** Always answer yes. Requires knowing the
-   signature and how UE4SS returns a bool from a hook - more fiddly, and
-   we would test it before shipping.
-4. **Edit the save** (`SharedGameSettings.sav`, GVAS). Only if the above
-   fail, because it is the least reversible.
+UE4SS exposes `UDataTable` with **reference-based row access**:
+
+```
+dt:ForEachRow(function(rowName, row)
+    row.someFlag = true          -- writes straight into the table
+end)
+dt:FindRow("RowName")            -- same, for one row
+```
+
+and `LoadAsset` fetches an asset by path without the game needing to be
+in any particular state.
+
+So the unlocker is most likely:
+
+```
+LoadAsset("/Game/Data/DT_GarageVehicleTable_GER")
+LoadAsset("/Game/Data/DT_GarageVehicleTable_USA")
+  -> ForEachRow, set the unlock column on every row
+```
+
+**This is the cheapest lever by a wide margin**, and it is the standard
+technique in other UE games. It replaces the earlier plan of poking the
+progression object or hooking `IsVehicleUnlocked`.
+
+The probe still has to happen first, for one reason: we need the real
+column names on the row struct. Guessing a property name crashes this
+game. `RegisterCustomProperty` and the row struct's own
+`ForEachProperty` give us the names safely.
+
+Fallbacks, in order, if the table does not hold the flag:
+
+1. A bool or array on the progression object.
+2. Hook `IsVehicleUnlocked` and always answer yes.
+3. Edit the save (`SharedGameSettings.sav`, GVAS). Least reversible, last.
 
 ### The caveat that decides the design
 
@@ -173,6 +198,29 @@ runtime, which is the piece we never solved.
   state are replicated. Singleplayer only, as with everything here.
 
 ---
+
+## 3b. What the tool can do that this project has not used
+
+The UE4SS Lua API is much wider than what we touched. Confirmed from its
+own documentation, and worth knowing before writing another keybind:
+
+| Capability | What it would give us here |
+| --- | --- |
+| `UDataTable` + `LoadAsset` | **Edit game data tables live** - garage tables, mission rewards, anything row-based. The unlocker, and probably the optics and repair numbers too |
+| `RegisterConsoleCommandGlobalHandler` | Real console commands (`cta_unlockall`) instead of a pile of function keys |
+| `NotifyOnNewObject` | React the moment an object appears - the bino camera, a garage entry - instead of polling |
+| `ForEachUObject` | Walk every object to find a subsystem instance, rather than guessing class names |
+| `UWorld:SpawnActor`, `UUserWidget` | Spawn actors and build UI. We never made a single widget |
+| `RegisterCustomEvent` | Let two mods talk to each other |
+| `TArray`, `TMap`, `TSet` | Handle array properties properly. We avoided arrays entirely because reading them was awkward |
+| `ExecuteInGameThread` | Run engine calls on the game thread. Our timers run on the async thread, which works but is the riskier side of the line |
+| Blueprint mods (`BPModLoaderMod` + LogicMods) | Add content without Lua at all |
+| C++ mods (UHT headers, SDK dump) | Reach anything the reflection system hides |
+
+Real-world framing: in other UE games these are the everyday tools.
+DataTable editing is how people rebalance loot and stats; Blueprint mods
+and console commands are how people add content. This project wrote one
+Lua script against object properties and stopped there.
 
 ## 4. Ground rules for whoever picks this up
 
