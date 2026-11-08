@@ -190,3 +190,24 @@ game stays responsive.
 **Not tested: gameplay.** That is where it failed, and it needs a person in
 a tank. Steps: F5 to open, click the checkbox, F5 to close. If the game
 feels stuck, press **F6**, which is the whole point of adding it.
+
+---
+
+## Phase 1c result - PASSED IN GAMEPLAY
+
+Confirmed in a tank, 08/11/2026. The panel drew over the live game, the
+checkbox toggled to ON, the status label read `open - F5 close, F6 panic`,
+and closing it returned the game to normal.
+
+So the framework works in gameplay, not just in menus, once it is given
+three things:
+
+1. `ignoreLook = true`, so the camera stops fighting the cursor.
+2. Our own input restore after closing, rather than trusting the framework.
+3. F6 as a panic key, because a stuck session must never need Alt+F4.
+
+Which of the three actually fixed it is not isolated - all three went in
+together. They stay in together; each is cheap and each guards a failure
+we have already seen.
+
+**Phase 1 is complete. Phase 2 can start.**
