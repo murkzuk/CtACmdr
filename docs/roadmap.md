@@ -33,6 +33,37 @@ Data/MissionRewards/RDA_<vehicle>    <- one per tank, granted by a mission
 So a vehicle is a row in a garage table plus a mission reward. There is a
 real flag to flip.
 
+### FOUND: the game has its own unlock functions
+
+`/Script/Panzer_Elite_2.ProgressionSubsystem` carries the whole system:
+
+```
+UnlockAllVehicles()        no parameters
+UnlockAllMissions()        no parameters
+LockAllVehicles()          ResetAllProgress()
+UnlockVehicle(tag)         LockVehicle(tag)
+GetUnlockedVehiclesCount() -> int
+IsVehicleUnlocked(tag) -> bool
+GetProgressionSubsystemInstance(WorldContextObject) -> instance
+SavePlayerProgress() -> bool
+```
+
+Reached and called successfully in game: located the instance through the
+main menu player controller, called `UnlockAllVehicles`, then
+`SavePlayerProgress` which returned true.
+
+**Open question:** `GetUnlockedVehiclesCount` returned 25 both before and
+after. Either the save already has everything, or the number is not what
+it sounds like. Resolving it needs someone looking at the garage: if every
+tank is already selectable, there is nothing for this feature to do.
+
+### The original probe plan, kept for reference
+
+The steps below were written before the subsystem was found. The DataTable
+route turned out to be a dead end: `DT_GarageVehicleTable_GER` is a
+template with 3 rows named Row1..Row3 and seven auto-generated
+`Column1_19_E5988...` object columns from a blueprint struct.
+
 ### Step 1 - probe (one keypress, changes nothing)
 
 A `CtAUnlock` probe that, names only:
