@@ -52,10 +52,28 @@ Reached and called successfully in game: located the instance through the
 main menu player controller, called `UnlockAllVehicles`, then
 `SavePlayerProgress` which returned true.
 
-**Open question:** `GetUnlockedVehiclesCount` returned 25 both before and
-after. Either the save already has everything, or the number is not what
-it sounds like. Resolving it needs someone looking at the garage: if every
-tank is already selectable, there is nothing for this feature to do.
+**Resolved - and the answer is no.**
+
+`GetVehicleProgressMap()` returns 25 entries, and
+`GetUnlockedVehiclesCount()` returns 25. Those are the same 25: the map
+tracks exactly the vehicles that exist, so "unlocked" already covers
+everything obtainable. `UnlockAllVehicles` therefore had nothing to do,
+and correctly changed nothing.
+
+A look at the hangar confirmed it. Every released vehicle is selectable.
+The two cards still locked - **PzKpfw V Panther and PzKpfw VI Tiger** -
+show "0/0 UNITS", which is the shape of content that is not in the game
+yet rather than content behind progression. The title is in Early Access
+(BETA v.0.11.03), `IsVehicleComingSoon` exists in the API for exactly
+this case, and neither tank appears in the progress map at all.
+
+### So what is an unlocker worth?
+
+Not much for a player who has finished the missions - there is nothing
+left to unlock. It would matter for a fresh save, where it would skip the
+mission-reward progression. That makes it a small optional toggle, not a
+headline feature, and it should say so plainly rather than promise tanks
+that do not exist yet.
 
 ### The original probe plan, kept for reference
 
