@@ -110,3 +110,33 @@ licence text shipped next to it.
   first thing to check if the panel key does nothing.
 - **The panel is a second way to do things.** If it becomes the *only* way,
   a framework problem takes the whole mod with it. Keys stay.
+
+---
+
+## Phase 1 result - PASSED
+
+Run on 08/11/2026, main menu, with a throwaway probe mod.
+
+```
+require ok=true   type=table
+Init ok=true      err=nil
+Register ok=true  err=nil
+Open ok=true      err=nil
+checkbox changed to true        <- after a real mouse click
+```
+
+The panel drew as intended - title, hotkey hint, dock selector, section
+header, label, checkbox, button. See `menu-probe.png` in this folder.
+
+Then a synthetic left click at the checkbox coordinates produced
+`checkbox changed to true`, so **mouse input reaches the panel** without
+any cursor workaround. That retires the cursor risk from the plan below.
+
+**What this proves:** UMG can be built at runtime in this game, ModMenu
+resolves through `require("ModMenu.ModMenu")` from
+`ue4ss/Mods/shared/ModMenu`, and clicks land.
+
+**What it does not prove:** this was the main menu. In gameplay the game
+captures the mouse for camera look, which is exactly when a menu tends to
+lose its cursor. That is the next thing to test, and it needs someone in
+a tank - it cannot be checked from the menu.
