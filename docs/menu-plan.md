@@ -1,0 +1,112 @@
+# Plan: an in-game menu for the commander view
+
+Instead of function keys and a numpad: one panel, in the game.
+Everything below is checked against ModMenu's own source and README.
+
+---
+
+## The framework
+
+**mattdavida/ue4ss-ModMenu** - MIT, (c) 2026 Matthew Arvidson.
+
+| Fact | Value |
+| --- | --- |
+| Latest release | v1.4.0 - `ModMenu.zip` 52 KB, plus `SHA256SUMS.txt` |
+| Installed at | `ue4ss/Mods/shared/ModMenu` |
+| Kind | a `require`d library, **not** an enabled mod of its own |
+| Loaded with | `local ModMenu = require("ModMenu.ModMenu")` |
+
+Widget types, from `widgets/`: `button, checkbox, dropdown, fold, label,
+number, row, separator, textinput, init`. That covers everything needed here.
+
+## The API we would actually call
+
+```lua
+ModMenu.Init({ title=, instanceId=, key=, keyHint=, dock=, tabs={...}, theme= })
+ModMenu.Register({ id=, title=, tab=, items={ ... } })
+ModMenu.Get(sectionId, itemId)            -- read a checkbox or dropdown
+ModMenu.Set(sectionId, itemId, value)     -- write it, widget updates live
+ModMenu.SetLabel(sectionId, itemId, "..")
+ModMenu.SetButtonLabel / SetButtonEnabled / SetButtonVariant / SetButtonActive
+ModMenu.Open() / Close() / Toggle() / SetTab() / SetDock()
+```
+
+Item fields, read out of the widget sources:
+
+- `checkbox`: `id`, `label`, `default`, `onChange(bool)`, `showState`
+- `number`: `id`, `label`, `default`, `integer`, `min`, `max`
+- `button`: `id`, `label`, `variant` (default/primary/secondary/success/danger/), `enabled`, `active`, `onPress`
+- `label`: `id`, and text set later with `ModMenu.SetLabel`
+- `fold`: a collapsible group inside a section
+
+---
+
+## What the panel would show
+
+**Tab: Commander view**
+
+| Control | Type | Does |
+| --- | --- | --- |
+| Commander view | checkbox | same as F3 today |
+| Tank | label | `BP_PzKpfwIVAusfG_C`, so you know what you are editing |
+| Offset X / Y / Z | number x3 | replaces numpad nudging |
+| Back off / Raise | button x2 | the usual two-axis fix, 5 cm a press |
+| Reset | button | back to 0,0,0 |
+| Save this tank | button | same as ALT+NUM 0 |
+| Status | label | last action, so nothing happens silently |
+
+**Later tab: Realism** - repair times, optics magnification, and the
+unlock toggle, each as its own section once built.
+
+---
+
+## Phases
+
+**Phase 1 - prove the framework runs in this game. One test, on its own.**
+
+1. Unpack ModMenu into `ue4ss/Mods/shared/ModMenu`
+2. Add a panel to CtACmdr with one label and one button that only logs
+3. Press its key and see whether a panel appears
+
+Everything else depends on that answer, so it does not get bundled with
+anything. This game uses UMG heavily - one dump counted 1616 widgets - but
+that is a reason to expect it to work, not a reason to assume it.
+
+**Phase 2 - move the existing controls in.** The panel calls the same Lua
+functions the keys already call. The camera code does not change at all,
+and the keys keep working, so a menu failure cannot take the feature down.
+
+**Phase 3 - per-tank dropdown and FOV.** A dropdown of every tank with a
+saved position, and a number field for camera FOV, currently fixed at the
+game's 90.
+
+**Phase 4 - realism tab.** Repair times, optics, unlock. Each is a section
+that can be added or removed without touching the others.
+
+---
+
+## Decisions
+
+**Panel key: F5.** F3/F4 are the view, ALT+NUM moves the camera, F7 is
+taken by another mod in this install, F8/F9 are the dev probe.
+
+**Cursor: expect to need `cursorMode = "modmenu"`.** Games often suppress
+the mouse pointer, and that option draws its own. Phase 1 settles it.
+
+**Pinning: same treatment as UE4SS.** Version named, SHA256 pinned, MIT
+licence text shipped next to it.
+
+---
+
+## Risks
+
+- **A third-party dependency in our zip.** Small, MIT, pinned - but it is
+  someone else's code shipping with ours, and that should be a deliberate
+  decision, not a side effect.
+- **UI frameworks break on game patches** more readily than plain Lua,
+  because they build engine widgets directly.
+- **Input backend.** ModMenu can use `RegisterKeyBind` or poll the engine.
+  Our keybinds work today, so the default should be fine - and it is the
+  first thing to check if the panel key does nothing.
+- **The panel is a second way to do things.** If it becomes the *only* way,
+  a framework problem takes the whole mod with it. Keys stay.
