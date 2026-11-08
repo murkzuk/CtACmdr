@@ -1,3 +1,6 @@
+> **PARKED** - built, worked, then reverted for being too much effort. See
+> [menu-attempt.md](menu-attempt.md) for what was learned and how to resume.
+
 # Plan: an in-game menu for the commander view
 
 Instead of function keys and a numpad: one panel, in the game.
